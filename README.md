@@ -8,6 +8,8 @@ repositories and produces:
 - applicable color-coded architecture, C4, component, sequence, activity, flow,
   decision, state, and code diagrams;
 - source-linked Example, Before/After, Hardening, Cross-repo, and Tests views;
+- a PR-learning mode that resolves Azure DevOps PRs, analyzes base-versus-PR
+  behavior, and links directly to precise ranges in the PR Files experience;
 - a structured Chrome bookmark folder under `Imported`.
 
 Invoke it with:

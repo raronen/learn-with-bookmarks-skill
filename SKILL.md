@@ -17,6 +17,9 @@ Natural-language triggers also include:
 
 - "I want to learn how X works."
 - "Explain these recent changes and bookmark the code."
+- "Teach me this PR."
+- "Explain what PR 12345 changes."
+- "Create a visual guide for this pull request."
 - "Trace this flow across these repositories."
 - "Create a visual learning guide for X."
 
@@ -87,6 +90,92 @@ The user may start in a Home/chat session and select several repositories.
 
 Use the `orchestrate` skill's cross-repo research workflow when available.
 
+## Pull request learning mode
+
+Enter PR learning mode when the user supplies or refers to a pull request, PR
+URL, PR number, review, proposed change, or branch diff. This mode explains both
+the architecture and the delta introduced by the PR.
+
+### Resolve the pull request
+
+Prefer Azure DevOps MCP repository and pull-request tools over scraping HTML or
+guessing from a local checkout.
+
+1. If the user provides a full PR URL, parse its organization, project,
+   repository, and PR ID. Fetch that PR directly.
+2. If the current repository plus PR ID identifies exactly one PR, use it.
+3. If the PR location is not uniquely known, ask one focused question:
+   **"Which service or repository is this PR related to?"**
+   - Offer known service/repository names as choices when available.
+   - Do not ask for organization, project, repository, and PR ID in one bundled
+     question.
+4. Resolve the service to candidate Azure DevOps repositories. Use Azure DevOps
+   MCP to list/search PRs in those repositories, including active and recently
+   completed PRs when the user's wording requires it.
+5. If several PRs still match, ask the user to select from concise choices
+   containing PR ID, title, repository, author, and status.
+6. Fetch PR metadata, latest iteration, changed files, actual line diffs,
+   source/target refs, commits, and comment threads when review discussion
+   materially explains the change.
+7. Record the resolved project, repository, PR ID, source branch, target branch,
+   latest iteration, and comparison base before generating links.
+
+Never select a PR merely because its number or title looks similar. If Azure
+DevOps MCP is unavailable, use authenticated Azure DevOps APIs or a local
+source/target diff only when identity can still be established reliably. State
+when the analysis is based on a local approximation rather than the canonical PR
+iteration.
+
+### Investigate the PR delta
+
+Do not summarize only the changed lines. For every meaningful changed area:
+
+1. Read the complete changed methods/types plus their surrounding component.
+2. Trace callers, callees, contracts, configuration, and tests affected by the
+   change.
+3. Compare target/base behavior with the PR behavior.
+4. Classify behavior explicitly as:
+   - **Existing and unchanged** - still participates but is not modified;
+   - **New** - introduced by the PR;
+   - **Changed/hardened** - existing behavior altered by the PR;
+   - **Removed/replaced** - behavior deleted or superseded by the PR.
+5. Distinguish code movement/refactoring from real behavior changes.
+6. Identify compatibility, rollout, failure-path, security, performance,
+   concurrency, telemetry, and test implications when applicable.
+7. Treat tests as behavioral evidence, not proof that every scenario is covered.
+8. Include unresolved review comments or later iterations only when they alter
+   the current understanding; clearly label superseded discussion.
+
+### PR-focused HTML
+
+PR learning guides must emphasize change status throughout:
+
+- use the existing/new/changed/removed palette as the primary visual language;
+- put a visible status badge on every diagram node, including unchanged context;
+- use solid borders for PR-touched nodes and a lighter or dashed treatment for
+  unchanged context;
+- include **Before / After** navigation and content;
+- begin with a compact PR summary containing title, ID, repository, author,
+  status, source -> target branch, iteration, changed-file count, and scope;
+- show unchanged nodes needed to understand the end-to-end flow rather than
+  drawing only disconnected changed lines;
+- visually distinguish a changed implementation from an unchanged caller,
+  dependency, contract, or downstream effect;
+- include an impact map that connects changed files to affected components,
+  flows, tests, and repositories when applicable;
+- explain what deliberately does **not** change, especially public contracts,
+  authorization boundaries, persistence, execution behavior, or deployment.
+
+Use only applicable diagram types, but prefer:
+
+- a High-Level Architecture, C4, or Component diagram showing affected and
+  unaffected boundaries;
+- a Before/After flowchart for behavioral changes;
+- a Sequence or Activity diagram when call order changes;
+- a Code/Class diagram when ownership or type relationships change;
+- a Decision Tree when branching/routing rules change;
+- a State Machine when transitions change.
+
 ## Investigation quality bar
 
 Do not create diagrams from commit messages alone.
@@ -137,6 +226,39 @@ lineStartColumn=5&lineEndColumn=6
 ```
 
 HTML-encode `&` as `&amp;` inside generated HTML.
+
+#### Azure DevOps pull-request file links
+
+In PR learning mode, links to changed code must open the PR **Files** experience,
+not the repository contents page. Use the resolved PR metadata and this shape:
+
+```text
+https://<org>.visualstudio.com/<project>/_git/<repo>/pullrequest/<pr-id>?path=/<repo-path>&version=GB<target-branch>&line=<start>&lineEnd=<end>&lineStartColumn=<start-column>&lineEndColumn=<end-column>&type=2&lineStyle=plain&_a=files&iteration=<iteration>&base=<base>
+```
+
+Example:
+
+```text
+https://msazure.visualstudio.com/One/_git/Mgmt-AppInsights-DevExp-API/pullrequest/16459511?path=/Draft/Draft.Role/src/dal/kusto/compiler/aiOmsUnifiedCompiler.ts&version=GBmaster&line=14&lineEnd=14&lineStartColumn=33&lineEndColumn=57&type=2&lineStyle=plain&_a=files&iteration=1&base=0
+```
+
+PR-link requirements:
+
+- use the actual PR ID, target branch, selected iteration, and comparison base;
+- preserve `type=2`, `lineStyle=plain`, and `_a=files`;
+- URL-encode branch names and paths where required;
+- use precise line and column ranges from the PR side being referenced; do not
+  default every PR link to columns 5 and 6;
+- link changed/new code to its visible range in the selected PR iteration;
+- for removed/base behavior, link to the base side or a commit-pinned historical
+  contents link when that is clearer and stable;
+- for unchanged context, use a normal branch/commit contents link unless the
+  unchanged line is intentionally shown in the PR diff;
+- label links `PR change`, `Before`, `Current PR`, `Unchanged implementation`,
+  `Tests`, or similarly so the destination is unambiguous;
+- verify a representative link from each changed file opens the expected PR,
+  iteration, file, diff side, and selected range before publishing;
+- HTML-encode every `&` as `&amp;` in the overview HTML.
 
 ### GitHub
 
@@ -202,6 +324,10 @@ Navigation behavior:
 These are thematic learning views, not additional diagram types. Each view may
 contain one or more applicable diagram types from the catalog below. Reuse or
 cross-link an existing diagram instead of duplicating the same content.
+
+In PR learning mode, **Before / After** is mandatory. **Tests**, **Hardening**,
+and **Cross-repo** remain applicability-driven but should be included whenever
+the PR supplies meaningful evidence for those views.
 
 ### Mandatory bookmark tree at the top
 
