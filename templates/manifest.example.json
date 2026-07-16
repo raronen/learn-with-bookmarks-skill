@@ -1,0 +1,18 @@
+{
+  "title": "Example Topic",
+  "overviewName": "00 - Open Example Topic Overview",
+  "overviewPath": "C:\\Users\\user\\OneDrive - Microsoft\\Documents\\Learning Bookmarks\\example-topic\\example-topic-overview.html",
+  "links": [],
+  "folders": [
+    {
+      "name": "01 - High-Level Architecture Diagram",
+      "links": [
+        {
+          "name": "01. API entry point",
+          "url": "https://example.invalid/source"
+        }
+      ],
+      "folders": []
+    }
+  ]
+}
