@@ -7,6 +7,9 @@ repositories and produces:
 - an expanded top-level bookmark tree with collapsed nested folders;
 - mandatory color-coded Architecture, Sequence, and Data Flow diagrams;
 - applicable C4, component, activity, flow, decision, state, and code diagrams;
+- strict visual grammar so sequence diagrams use lifelines/messages, decisions
+  use diamonds/labeled branches, state machines use transitions, and data-flow
+  diagrams show entities/processes/stores with labeled payload movement;
 - ARM MCP investigation and management-plane end-to-end views for features
   invoked through Azure Resource Manager;
 - source-linked Example, Before/After, Hardening, Cross-repo, and Tests views;

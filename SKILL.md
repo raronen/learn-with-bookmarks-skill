@@ -485,6 +485,156 @@ sections for every learning guide:
 These diagrams are mandatory even when concise. They must provide three distinct
 views and must not be copies of one another.
 
+### Diagram type fidelity
+
+Do not create a collection of generic cards and merely label it with a diagram
+type. Each diagram must visually and semantically follow the conventions of that
+diagram type. The viewer should recognize the diagram type without reading its
+heading.
+
+Every applicable diagram section must begin with the question it answers. Use
+the following definitions and visual grammar.
+
+#### 1. Architecture Diagram
+
+**Question it answers:** What are the components and how do they interact?
+
+Required visual grammar:
+
+- show actors, gateways/front doors, services, modules, identity providers,
+  planners/orchestrators, caches, queues, and data stores as distinct nodes;
+- arrange nodes by architectural layer, boundary, ownership, or request
+  direction rather than as an arbitrary grid;
+- use directional connectors to show calls, dependencies, events, or data
+  access;
+- label important connectors with protocol, operation, or interaction;
+- use containers/boundaries for repositories, services, trust zones, or
+  deployment units where relevant;
+- show fan-out/fan-in and external dependencies clearly;
+- use conventional visual distinctions for people, services, databases, queues,
+  and caches.
+
+This is the primary structural picture and is mandatory. It must not be replaced
+by a prose list of components.
+
+#### 2. Sequence Diagram
+
+**Question it answers:** What happens step-by-step during a request or operation?
+
+Required visual grammar:
+
+- place participants horizontally across the top;
+- draw a vertical lifeline beneath every participant;
+- order time from top to bottom;
+- draw horizontal directional message arrows between lifelines;
+- label each message with the operation, request, response, event, retry, cache
+  lookup, or failure;
+- distinguish calls from returns and synchronous from asynchronous interactions;
+- use grouped alternatives/loops for conditions, retries, polling, cache hits,
+  or failures when applicable;
+- start with the initiating actor and end with the observable result.
+
+Do not render a sequence diagram as a vertical flowchart of boxes. It is
+mandatory and should show the most representative request, event, initialization,
+or build-time interaction for the topic.
+
+#### 3. Flowchart / Decision Tree
+
+**Question it answers:** What decisions does the code or workflow make?
+
+Required visual grammar:
+
+- use a clear start and terminal/result nodes;
+- use process rectangles for actions;
+- use diamond-shaped nodes for decisions;
+- label every outgoing decision edge, such as `Yes`/`No`, hit/miss, allowed/
+  denied, success/failure, or feature enabled/disabled;
+- show loops, retries, early returns, fallback paths, and error exits;
+- keep arrow direction consistent and avoid ambiguous crossing lines;
+- use a decision tree layout when mutually exclusive rules are the focus and a
+  flowchart layout when procedural actions between decisions are important.
+
+Use this for branching, caching, authorization, routing, retries, validation, or
+complex logic. Include it whenever such decisions materially affect the topic.
+
+#### 4. State Machine Diagram
+
+**Question it answers:** What states can an object or process be in, and what
+causes transitions?
+
+Required visual grammar:
+
+- use named state nodes, not action steps;
+- include an explicit initial state and terminal states where they exist;
+- draw directed transitions between states;
+- label transitions with event, command, condition/guard, timeout, or failure;
+- show self-transitions, retries, cancellation, pause/resume, and invalid or
+  rejected transitions when relevant;
+- visually distinguish successful, failed, paused, and terminal states.
+
+Use this for jobs, deployments, long-running operations, resource lifecycle,
+workflows, circuit breakers, sessions, or durable entities. Do not use a state
+machine for a stateless request pipeline.
+
+#### 5. Data Flow Diagram
+
+**Question it answers:** How does data move and transform?
+
+Required visual grammar:
+
+- distinguish external entities, processes/transformations, and data stores;
+- use directional arrows labeled with the actual data being carried, such as
+  token/claims, request DTO, KQL, metadata, event, raw logs, cache entry, result,
+  or error;
+- show validation, enrichment, normalization, aggregation, filtering, rewriting,
+  serialization, and persistence as processes when applicable;
+- show where data is cached, queued, stored, read, or emitted;
+- mark trust, service, repository, or region boundaries crossed by the data;
+- distinguish control flow from data flow and omit control-only arrows unless
+  needed for context;
+- begin at the data source and end at each consumer/output.
+
+This diagram is mandatory. It must focus on the payload and transformations, not
+repeat the Architecture Diagram with unlabeled service arrows.
+
+#### 6. Component Diagram
+
+**Question it answers:** Who owns each responsibility inside the system or
+selected service?
+
+Required visual grammar:
+
+- draw the selected system/service/container as a visible boundary;
+- place its modules/components inside that boundary;
+- give each component a concise responsibility;
+- show provided/required interfaces or labeled dependencies where useful;
+- show external dependencies outside the boundary;
+- group components by layer or concern when that clarifies ownership;
+- link components to their implementation, interface, registration, and tests
+  when precise sources exist.
+
+Use this to explain internal code organization, ownership, and responsibility.
+Do not reduce it to a directory tree unless the directory structure genuinely
+matches runtime component boundaries.
+
+### Rendering quality
+
+All six diagram types must be rendered as actual visual diagrams using
+self-contained HTML/CSS/SVG. Text-only ASCII art and fenced source code are
+examples of the desired semantics, not acceptable final rendering.
+
+For every diagram:
+
+- size nodes and labels for comfortable reading without zooming;
+- keep the primary reading direction obvious;
+- use whitespace and alignment to communicate grouping;
+- add arrowheads and connector labels;
+- avoid overlapping nodes, labels, and connectors;
+- provide a visible legend for colors, shapes, and line styles;
+- preserve the required clickable source/bookmark behavior;
+- include enough detail to teach the real system without turning the diagram
+  into an unreadable source-code dump.
+
 Then consider the remaining sections in the order below. Include an optional
 section only when it adds distinct learning value. Omit inapplicable or
 redundant optional sections rather than creating empty or speculative diagrams.
@@ -495,15 +645,14 @@ redundant optional sections rather than creating empty or speculative diagrams.
 | 2 | **Sequence Diagram** | **Always required.** |
 | 3 | **Data Flow Diagram** | **Always required.** |
 | 4 | **High-Level Architecture Diagram** | A newcomer needs an additional simplified overview distinct from the mandatory Architecture Diagram. |
-| 5 | **Component Diagram** | The important learning unit is the dependency or collaboration structure between modules/components and a C4 hierarchy is unnecessary. |
+| 5 | **Component Diagram** | Internal ownership, responsibilities, interfaces, or dependencies materially improve understanding. |
 | 6 | **System Context Diagram (C4 Level 1)** | The system boundary, users, and external systems are relevant. |
 | 7 | **Container Diagram (C4 Level 2)** | Deployable/runnable applications, services, jobs, databases, or repositories and their protocols must be distinguished. |
 | 8 | **Component Diagram (C4 Level 3)** | The internal components of one selected container are important. Do not duplicate the generic Component Diagram. |
 | 9 | **Code/Class Diagram (C4 Level 4)** | Concrete classes, interfaces, inheritance, composition, or key method ownership materially improve understanding. |
 | 10 | **Activity Diagram** | A workflow has parallel work, joins, loops, responsibilities, or business activities. |
-| 11 | **Flowchart** | A procedural path, request pipeline, transformation chain, before/after flow, or concrete walkthrough is central. |
-| 12 | **Decision Tree** | The topic contains meaningful mutually exclusive rules, routing, authorization, feature gates, or troubleshooting choices. |
-| 13 | **State Machine Diagram** | A durable entity or process has named states, guarded transitions, terminal states, or invalid transitions. |
+| 11 | **Flowchart / Decision Tree** | The topic contains meaningful procedural decisions, caching, routing, authorization, validation, retries, feature gates, or mutually exclusive rules. |
+| 12 | **State Machine Diagram** | A durable entity or process has named states, guarded transitions, terminal states, or invalid transitions. |
 
 Applicability rules:
 
@@ -580,9 +729,8 @@ Imported
     08 - Component Diagram (C4 Level 3)
     09 - Code/Class Diagram (C4 Level 4)
     10 - Activity Diagram
-    11 - Flowchart
-    12 - Decision Tree
-    13 - State Machine Diagram
+    11 - Flowchart or Decision Tree
+    12 - State Machine Diagram
 ```
 
 Always create folders for the three mandatory diagram sections. Create folders
