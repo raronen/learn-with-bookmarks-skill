@@ -37,7 +37,8 @@ Complete all of the following:
    learning views with prominent same-page navigation.
 6. Always include an **Architecture Diagram**, **Sequence Diagram**, and
    **Data Flow Diagram**.
-7. Create categorized sub-bookmarks matching the guide's sections and flow.
+7. Create detailed sub-bookmarks that trace the code's execution path in runtime
+   order, including cross-service and cross-repository handoffs.
 8. Publish the topic folder under Chrome's top-level `Imported` folder when Chrome is closed.
 9. If direct publication is unavailable, create an import-ready HTML file whose contents Chrome places under `Imported`.
 10. Keep all generated artifacts in durable storage, never session state or a temporary directory.
@@ -699,64 +700,108 @@ Clickable behavior:
 - never invent a link or attach an unrelated source merely to make a node
   clickable;
 - visually distinguish clickable nodes from explanatory nodes without links;
-- bookmarks for a diagram section must appear in the same top-to-bottom or
-  left-to-right order as the diagram.
+- diagrams may link directly to source, another diagram, or a related execution
+  bookmark, but diagram sections must not define the bookmark hierarchy.
 
 Do not overload prose outside the diagrams. Put operational detail inside the
 nodes while keeping labels readable.
 
 ## Bookmark hierarchy
 
-Create this shape:
+The overview HTML and the bookmark tree serve different purposes:
+
+- the **overview HTML** is the design and learning story, organized by diagrams
+  and applicable learning views;
+- the **bookmark tree after the overview link** is a detailed executable trace,
+  organized by the order in which code runs.
+
+Never create bookmark folders named after HTML sections or diagram types merely
+because those sections exist. Do not create `Architecture Diagram`, `Sequence
+Diagram`, `Data Flow Diagram`, `Example`, `Before and After`, `Hardening`,
+`Cross-repo`, or `Tests` folders unless one of those names is literally a phase
+in the executed system.
+
+Create a hierarchy shaped like the actual execution:
 
 ```text
 Imported
   <Topic>
     00 - Open <Topic> Overview
-    01 - Architecture Diagram
-      01. ...
-      02. ...
-    02 - Sequence Diagram
-      01. ...
-    03 - Data Flow Diagram
-      01. ...
-    04 - High-Level Architecture Diagram
-      01. ...
-    05 - Component Diagram
-      01. ...
-    06 - System Context Diagram (C4 Level 1)
-    07 - Container Diagram (C4 Level 2)
-    08 - Component Diagram (C4 Level 3)
-    09 - Code/Class Diagram (C4 Level 4)
-    10 - Activity Diagram
-    11 - Flowchart or Decision Tree
-    12 - State Machine Diagram
+    01 - Request Entry
+      01. Client constructs request
+      02. Public endpoint receives request
+      03. Request model is parsed
+    02 - Authentication and Authorization
+      01. Token is validated
+      02. Access policy is evaluated
+    03 - Orchestration
+      01. Handler builds execution context
+      02. Planner selects downstream path
+    04 - Downstream Service Handoff
+      01. Client sends downstream request
+      02. Downstream endpoint accepts request
+      03. Downstream orchestrator processes request
+    05 - Data Access and Transformation
+      01. Repository or provider loads data
+      02. Data is transformed
+      03. Result is assembled
+    06 - Response Path
+      01. Downstream response is mapped
+      02. Public response is returned
 ```
 
-Always create folders for the three mandatory diagram sections. Create folders
-for optional sections only when they appear in the overview. Preserve the
-relative order above, renumber included optional folders contiguously after the
-mandatory folders, retain numeric prefixes, and keep the overview first. Add
-nested folders such as `Tests`, `Historical implementation`, or repository names
-only where they improve navigation. Bookmark ordering must match each diagram's
-reading order.
+Adapt phase names to the real feature. The example names are not a required
+template.
 
-When an applicable learning view has substantial unique references, add a
-matching bookmark folder after the diagram folders:
+### Execution-order rules
 
-```text
-90 - Example
-91 - Before and After
-92 - Hardening
-93 - Cross-repo
-94 - Tests
-```
+- keep `00 - Open <Topic> Overview` as the first item;
+- every later bookmark should normally point to a precise executable source
+  location: endpoint, middleware, handler, validator, service method,
+  orchestrator, client call, message handler, grain, repository/provider,
+  transformation, persistence operation, or response mapper;
+- order bookmarks by runtime execution, not by repository, service, source-file
+  path, diagram section, or research order;
+- when execution crosses repositories or services, interleave those bookmarks
+  at the exact handoff point instead of grouping all links by repository;
+- include the caller immediately before the callee so a reader can follow each
+  boundary crossing;
+- use numbered action-oriented names that explain what executes, optionally
+  including the owner in parentheses, for example
+  `04. DPVS client sends logical-model request (DPVS)`;
+- create folders only for meaningful runtime phases, boundary crossings, or
+  branches that improve navigation;
+- preserve nested execution order inside every folder;
+- include important unchanged steps so PR/change guides remain a complete path;
+  add `[New]`, `[Changed]`, `[Removed]`, or `[Unchanged]` to bookmark names in PR
+  mode when useful;
+- represent a decision with nested branch folders such as `Allowed`/`Denied`,
+  `Hit`/`Miss`, or `Success`/`Failure`, ordered as the code evaluates them;
+- label asynchronous or parallel branches explicitly, such as `[Async] Publish
+  event` or `[Parallel] Fan-out to regions`, rather than pretending they are
+  synchronous;
+- place callbacks, polling, retries, fallback, and response unwinding at their
+  actual positions in the trace;
+- omit declarations, DTOs, tests, documentation, and historical code from the
+  execution tree unless they execute or directly define a runtime step. They can
+  still be linked from diagram nodes and learning views;
+- avoid duplicate bookmarks unless the same code genuinely executes at multiple
+  distinct points; distinguish repeated execution in the bookmark names.
 
-Include only applicable folders and preserve their relative order. Do not create
-a `Bookmarks` folder because the embedded tree already represents the complete
-bookmark hierarchy.
+### Relationship between diagrams and execution bookmarks
 
-Avoid duplicate links unless the same source genuinely proves two different concepts.
+The diagrams tell the design story and may summarize, branch, or compare the
+flow. The bookmark tree is the detailed source-level trace. They should
+cross-reference each other without becoming structurally identical:
+
+- make diagram nodes clickable to their most relevant precise source;
+- when useful, link diagram nodes to the same precise sources represented by the
+  related execution bookmarks;
+- a single diagram node may correspond to several consecutive execution
+  bookmarks;
+- a single execution bookmark may be referenced by several diagrams;
+- do not duplicate a source bookmark solely because it appears in multiple
+  diagrams.
 
 ## Publisher manifest
 
@@ -768,23 +813,41 @@ Write `<topic-slug>-bookmarks.json`:
   "overviewPath": "C:\\Users\\user\\OneDrive - Microsoft\\Documents\\Learning Bookmarks\\patterns-cross-resource-flow\\patterns-cross-resource-flow-overview.html",
   "folders": [
     {
-      "name": "01 - Architecture Diagram",
+      "name": "01 - Request Entry",
       "links": [
         {
-          "name": "01. API entry point",
+          "name": "01. Endpoint receives request (Public API)",
           "url": "https://example/source-link"
+        },
+        {
+          "name": "02. Handler validates request (Public API)",
+          "url": "https://example/validation-source-link"
         }
       ],
       "folders": []
     },
     {
-      "name": "02 - Sequence Diagram",
-      "links": [],
+      "name": "02 - Downstream Handoff",
+      "links": [
+        {
+          "name": "01. Client sends request (Service A)",
+          "url": "https://example/client-source-link"
+        },
+        {
+          "name": "02. Endpoint accepts request (Service B)",
+          "url": "https://example/downstream-source-link"
+        }
+      ],
       "folders": []
     },
     {
-      "name": "03 - Data Flow Diagram",
-      "links": [],
+      "name": "03 - Response Path",
+      "links": [
+        {
+          "name": "01. Result is mapped and returned (Public API)",
+          "url": "https://example/response-source-link"
+        }
+      ],
       "folders": []
     }
   ]

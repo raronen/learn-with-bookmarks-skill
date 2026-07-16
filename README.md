@@ -5,6 +5,8 @@ repositories and produces:
 
 - a durable, self-contained HTML learning guide;
 - an expanded top-level bookmark tree with collapsed nested folders;
+- a detailed bookmark tree ordered by the code's actual execution path across
+  repositories and services, independent of the HTML diagram sections;
 - mandatory color-coded Architecture, Sequence, and Data Flow diagrams;
 - applicable C4, component, activity, flow, decision, state, and code diagrams;
 - strict visual grammar so sequence diagrams use lifelines/messages, decisions
