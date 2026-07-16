@@ -1,6 +1,6 @@
 ---
 name: learn-with-bookmarks
-description: Investigate and teach a technical topic across one or more repositories, then create a durable local HTML learning guide with a collapsed bookmark tree followed by applicable, detailed, color-coded architecture, C4, component, sequence, activity, flow, decision, state, or code diagrams, and publish a structured bookmark folder under Chrome's top-level Imported folder. Use when the user says they want to learn, understand, trace, or get an overview of a feature, flow, architecture, incident, or recent code changes and wants diagrams plus source links/bookmarks.
+description: Investigate and teach a technical topic across one or more repositories, then create a durable local HTML learning guide with a collapsed bookmark tree followed by mandatory Architecture, Sequence, and Data Flow diagrams plus applicable detailed, color-coded C4, component, activity, flow, decision, state, or code diagrams, and publish a structured bookmark folder under Chrome's top-level Imported folder. Use when the user says they want to learn, understand, trace, or get an overview of a feature, flow, architecture, incident, PR, or recent code changes and wants diagrams plus source links/bookmarks.
 ---
 
 # Learn with bookmarks
@@ -35,10 +35,12 @@ Complete all of the following:
    exists.
 5. Add applicable Example, Before/After, Hardening, Cross-repo, and Tests
    learning views with prominent same-page navigation.
-6. Create categorized sub-bookmarks matching the guide's sections and flow.
-7. Publish the topic folder under Chrome's top-level `Imported` folder when Chrome is closed.
-8. If direct publication is unavailable, create an import-ready HTML file whose contents Chrome places under `Imported`.
-9. Keep all generated artifacts in durable storage, never session state or a temporary directory.
+6. Always include an **Architecture Diagram**, **Sequence Diagram**, and
+   **Data Flow Diagram**.
+7. Create categorized sub-bookmarks matching the guide's sections and flow.
+8. Publish the topic folder under Chrome's top-level `Imported` folder when Chrome is closed.
+9. If direct publication is unavailable, create an import-ready HTML file whose contents Chrome places under `Imported`.
+10. Keep all generated artifacts in durable storage, never session state or a temporary directory.
 
 ## Durable locations
 
@@ -166,12 +168,13 @@ PR learning guides must emphasize change status throughout:
 - explain what deliberately does **not** change, especially public contracts,
   authorization boundaries, persistence, execution behavior, or deployment.
 
-Use only applicable diagram types, but prefer:
+In addition to the mandatory Architecture, Sequence, and Data Flow diagrams,
+consider these optional PR-focused diagrams:
 
 - a High-Level Architecture, C4, or Component diagram showing affected and
   unaffected boundaries;
 - a Before/After flowchart for behavioral changes;
-- a Sequence or Activity diagram when call order changes;
+- an Activity diagram when parallel workflow or responsibility changes;
 - a Code/Class diagram when ownership or type relationships change;
 - a Decision Tree when branching/routing rules change;
 - a State Machine when transitions change.
@@ -401,29 +404,54 @@ icons, border styles, or status badges as a second signal.
 
 ### Diagram section selection and order
 
-After the collapsed bookmark tree and navigation, consider the following diagram
-sections in this exact order. Include a section only when it adds distinct
-learning value for the investigated topic. Omit inapplicable or redundant
-sections rather than creating empty or speculative diagrams.
+After the collapsed bookmark tree and navigation, create these three baseline
+sections for every learning guide:
+
+1. **Architecture Diagram**
+   - Show the topic's boundary, major actors/systems/services/components, key
+     dependencies, and ownership.
+   - Adjust depth to the topic: system-level for broad subjects and
+     component/module-level for narrow subjects.
+2. **Sequence Diagram**
+   - Show the primary runtime interaction in temporal order, including request,
+     response, asynchronous handoff, failure, or callback paths as applicable.
+   - For a static library or build-time topic, show the most meaningful
+     invocation, compilation, configuration, initialization, or generation
+     sequence instead of inventing runtime calls.
+3. **Data Flow Diagram**
+   - Show where relevant data originates, how it is validated/transformed,
+     where it crosses trust or service boundaries, where it is stored/cached,
+     and what output it becomes.
+   - Label data carried on arrows and distinguish processes, external entities,
+     and data stores.
+
+These diagrams are mandatory even when concise. They must provide three distinct
+views and must not be copies of one another.
+
+Then consider the remaining sections in the order below. Include an optional
+section only when it adds distinct learning value. Omit inapplicable or
+redundant optional sections rather than creating empty or speculative diagrams.
 
 | Order | Section | Include when |
 |---:|---|---|
-| 1 | **Architecture Diagram** | Several architectural concerns or layers must be shown together, including boundaries, data movement, deployment, or cross-cutting concerns. |
-| 2 | **High-Level Architecture Diagram** | A newcomer needs a simplified overview before detailed diagrams. Prefer this over the generic Architecture Diagram when both would communicate the same facts. |
-| 3 | **Component Diagram** | The important learning unit is the dependency or collaboration structure between modules/components and a C4 hierarchy is unnecessary. |
-| 4 | **System Context Diagram (C4 Level 1)** | The system boundary, users, and external systems are relevant. |
-| 5 | **Container Diagram (C4 Level 2)** | Deployable/runnable applications, services, jobs, databases, or repositories and their protocols must be distinguished. |
-| 6 | **Component Diagram (C4 Level 3)** | The internal components of one selected container are important. Do not duplicate the generic Component Diagram. |
-| 7 | **Code/Class Diagram (C4 Level 4)** | Concrete classes, interfaces, inheritance, composition, or key method ownership materially improve understanding. |
-| 8 | **Sequence Diagram** | Ordering across participants, synchronous/asynchronous calls, replies, retries, or temporal behavior matters. |
-| 9 | **Activity Diagram** | A workflow has parallel work, joins, loops, responsibilities, or business activities. |
-| 10 | **Flowchart** | A procedural path, request pipeline, transformation chain, before/after flow, or concrete walkthrough is central. |
-| 11 | **Decision Tree** | The topic contains meaningful mutually exclusive rules, routing, authorization, feature gates, or troubleshooting choices. |
-| 12 | **State Machine Diagram** | A durable entity or process has named states, guarded transitions, terminal states, or invalid transitions. |
+| 1 | **Architecture Diagram** | **Always required.** |
+| 2 | **Sequence Diagram** | **Always required.** |
+| 3 | **Data Flow Diagram** | **Always required.** |
+| 4 | **High-Level Architecture Diagram** | A newcomer needs an additional simplified overview distinct from the mandatory Architecture Diagram. |
+| 5 | **Component Diagram** | The important learning unit is the dependency or collaboration structure between modules/components and a C4 hierarchy is unnecessary. |
+| 6 | **System Context Diagram (C4 Level 1)** | The system boundary, users, and external systems are relevant. |
+| 7 | **Container Diagram (C4 Level 2)** | Deployable/runnable applications, services, jobs, databases, or repositories and their protocols must be distinguished. |
+| 8 | **Component Diagram (C4 Level 3)** | The internal components of one selected container are important. Do not duplicate the generic Component Diagram. |
+| 9 | **Code/Class Diagram (C4 Level 4)** | Concrete classes, interfaces, inheritance, composition, or key method ownership materially improve understanding. |
+| 10 | **Activity Diagram** | A workflow has parallel work, joins, loops, responsibilities, or business activities. |
+| 11 | **Flowchart** | A procedural path, request pipeline, transformation chain, before/after flow, or concrete walkthrough is central. |
+| 12 | **Decision Tree** | The topic contains meaningful mutually exclusive rules, routing, authorization, feature gates, or troubleshooting choices. |
+| 13 | **State Machine Diagram** | A durable entity or process has named states, guarded transitions, terminal states, or invalid transitions. |
 
 Applicability rules:
 
 - inspect the code and evidence before choosing diagram types;
+- always create the mandatory Architecture, Sequence, and Data Flow diagrams;
 - do not infer nonexistent containers, components, states, or transitions merely
   to fill the catalog;
 - when two diagram types would be substantially identical, choose the one that
@@ -482,28 +510,31 @@ Imported
     01 - Architecture Diagram
       01. ...
       02. ...
-    02 - High-Level Architecture Diagram
+    02 - Sequence Diagram
       01. ...
-    03 - Component Diagram
+    03 - Data Flow Diagram
       01. ...
-    04 - System Context Diagram (C4 Level 1)
+    04 - High-Level Architecture Diagram
       01. ...
-    05 - Container Diagram (C4 Level 2)
+    05 - Component Diagram
       01. ...
-    06 - Component Diagram (C4 Level 3)
-    07 - Code/Class Diagram (C4 Level 4)
-    08 - Sequence Diagram
-    09 - Activity Diagram
-    10 - Flowchart
-    11 - Decision Tree
-    12 - State Machine Diagram
+    06 - System Context Diagram (C4 Level 1)
+    07 - Container Diagram (C4 Level 2)
+    08 - Component Diagram (C4 Level 3)
+    09 - Code/Class Diagram (C4 Level 4)
+    10 - Activity Diagram
+    11 - Flowchart
+    12 - Decision Tree
+    13 - State Machine Diagram
 ```
 
-Create folders only for diagram sections that appear in the overview. Preserve
-the relative order above, renumber included folders contiguously, retain numeric
-prefixes, and keep the overview first. Add nested folders such as `Tests`,
-`Historical implementation`, or repository names only where they improve
-navigation. Bookmark ordering must match each diagram's reading order.
+Always create folders for the three mandatory diagram sections. Create folders
+for optional sections only when they appear in the overview. Preserve the
+relative order above, renumber included optional folders contiguously after the
+mandatory folders, retain numeric prefixes, and keep the overview first. Add
+nested folders such as `Tests`, `Historical implementation`, or repository names
+only where they improve navigation. Bookmark ordering must match each diagram's
+reading order.
 
 When an applicable learning view has substantial unique references, add a
 matching bookmark folder after the diagram folders:
@@ -532,13 +563,23 @@ Write `<topic-slug>-bookmarks.json`:
   "overviewPath": "C:\\Users\\user\\OneDrive - Microsoft\\Documents\\Learning Bookmarks\\patterns-cross-resource-flow\\patterns-cross-resource-flow-overview.html",
   "folders": [
     {
-      "name": "01 - High-Level Architecture Diagram",
+      "name": "01 - Architecture Diagram",
       "links": [
         {
           "name": "01. API entry point",
           "url": "https://example/source-link"
         }
       ],
+      "folders": []
+    },
+    {
+      "name": "02 - Sequence Diagram",
+      "links": [],
+      "folders": []
+    },
+    {
+      "name": "03 - Data Flow Diagram",
+      "links": [],
       "folders": []
     }
   ]

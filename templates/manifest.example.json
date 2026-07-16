@@ -5,13 +5,23 @@
   "links": [],
   "folders": [
     {
-      "name": "01 - High-Level Architecture Diagram",
+      "name": "01 - Architecture Diagram",
       "links": [
         {
           "name": "01. API entry point",
           "url": "https://example.invalid/source"
         }
       ],
+      "folders": []
+    },
+    {
+      "name": "02 - Sequence Diagram",
+      "links": [],
+      "folders": []
+    },
+    {
+      "name": "03 - Data Flow Diagram",
+      "links": [],
       "folders": []
     }
   ]

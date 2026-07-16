@@ -5,8 +5,8 @@ repositories and produces:
 
 - a durable, self-contained HTML learning guide;
 - an expanded top-level bookmark tree with collapsed nested folders;
-- applicable color-coded architecture, C4, component, sequence, activity, flow,
-  decision, state, and code diagrams;
+- mandatory color-coded Architecture, Sequence, and Data Flow diagrams;
+- applicable C4, component, activity, flow, decision, state, and code diagrams;
 - source-linked Example, Before/After, Hardening, Cross-repo, and Tests views;
 - a PR-learning mode that resolves Azure DevOps PRs, analyzes base-versus-PR
   behavior, and links directly to precise ranges in the PR Files experience;
