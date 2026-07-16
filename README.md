@@ -7,6 +7,8 @@ repositories and produces:
 - an expanded top-level bookmark tree with collapsed nested folders;
 - mandatory color-coded Architecture, Sequence, and Data Flow diagrams;
 - applicable C4, component, activity, flow, decision, state, and code diagrams;
+- ARM MCP investigation and management-plane end-to-end views for features
+  invoked through Azure Resource Manager;
 - source-linked Example, Before/After, Hardening, Cross-repo, and Tests views;
 - a PR-learning mode that resolves Azure DevOps PRs, analyzes base-versus-PR
   behavior, and links directly to precise ranges in the PR Files experience;

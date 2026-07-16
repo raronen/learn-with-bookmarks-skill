@@ -92,6 +92,63 @@ The user may start in a Home/chat session and select several repositories.
 
 Use the `orchestrate` skill's cross-repo research workflow when available.
 
+## ARM-fronted feature learning
+
+Treat a feature as **behind ARM** when clients reach it through an Azure Resource
+Manager resource ID, management-plane REST operation, ARM proxy, resource
+provider route, or `management.azure.com` endpoint before the request reaches
+the owning service.
+
+For these features, use the ARM MCP during investigation to build the true
+end-to-end architecture picture. Do not draw ARM as a generic unexplained box or
+start the flow at the downstream service merely because that code is in the
+current repository.
+
+Use ARM MCP to identify, when available:
+
+- the public ARM operation, HTTP method, path, API version, and resource type;
+- subscription, resource group, provider namespace, parent/child resource, and
+  resource-ID semantics;
+- ARM authentication, authorization, policy, validation, and routing boundaries;
+- resource-provider registration and the handoff from ARM to the owning service;
+- request/response transformations, headers, correlation identifiers, async
+  operation handling, and error mapping;
+- relevant ARM resources or deployments that clarify the runtime topology.
+
+Then use Azure DevOps MCP or repository investigation for the implementation
+behind the ARM handoff. Correlate the ARM-facing contract with the downstream
+controller/endpoint, authorization, orchestration, storage, and response path.
+Do not infer internal ARM implementation details that the MCP evidence does not
+expose.
+
+If it is unclear whether the feature is ARM-fronted, inspect its public endpoint,
+resource ID, API contract, and callers. If ambiguity remains, ask one focused
+question: **"Is this feature invoked through Azure Resource Manager, or directly
+through the service endpoint?"**
+
+### Required ARM end-to-end diagrams
+
+For an ARM-fronted feature, all three mandatory diagrams must include the
+management-plane boundary:
+
+1. **Architecture Diagram**
+   - Show client/tool -> ARM -> resource provider/service -> dependencies.
+   - Mark trust, ownership, repository, deployment, and external-system
+     boundaries.
+2. **Sequence Diagram**
+   - Start with the client request to ARM.
+   - Include ARM validation/routing, downstream service calls, async polling or
+     callbacks when present, and the response/error path back through ARM.
+3. **Data Flow Diagram**
+   - Show resource identifiers, tokens/claims, API-versioned payloads, headers,
+     transformed requests, persisted data, and returned results crossing each
+     boundary.
+
+Add a **Cross-repo** view when ARM-facing and downstream implementation live in
+different repositories. Make ARM and downstream nodes clickable to precise ARM
+documentation, MCP-discovered resources, API specifications, source code, tests,
+or related bookmarks whenever such links exist.
+
 ## Pull request learning mode
 
 Enter PR learning mode when the user supplies or refers to a pull request, PR
