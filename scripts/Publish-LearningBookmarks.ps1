@@ -6,7 +6,12 @@ param(
     [ValidateSet('Auto', 'Direct', 'Import')]
     [string] $Mode = 'Auto',
 
+    [ValidateSet('Chrome', 'Edge', 'Both')]
+    [string] $Browser = 'Both',
+
     [string] $ChromeProfilePath = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default",
+
+    [string] $EdgeProfilePath = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default",
 
     [string] $OutputDirectory
 )
@@ -295,16 +300,27 @@ function Write-ImportFile($Manifest, [string] $Directory) {
     return $path
 }
 
-function Publish-Direct($Manifest, [string] $ProfilePath) {
-    if (Get-Process chrome -ErrorAction SilentlyContinue) {
-        throw 'Chrome is running. Close every Chrome window and background process before direct publication.'
+function Assert-BrowserReady(
+    [string] $BrowserName,
+    [string] $ProcessName,
+    [string] $ProfilePath) {
+    if (Get-Process $ProcessName -ErrorAction SilentlyContinue) {
+        throw "$BrowserName is running. Close every $BrowserName window and background process before direct publication."
     }
 
     $bookmarksPath = Join-Path $ProfilePath 'Bookmarks'
     if (-not (Test-Path -LiteralPath $bookmarksPath)) {
-        throw "Chrome bookmarks were not found at '$bookmarksPath'."
+        throw "$BrowserName bookmarks were not found at '$bookmarksPath'."
     }
 
+    return $bookmarksPath
+}
+
+function Publish-Direct(
+    $Manifest,
+    [string] $BrowserName,
+    [string] $BookmarksPath) {
+    $bookmarksPath = $BookmarksPath
     $bookmarks = Get-Content -LiteralPath $bookmarksPath -Raw | ConvertFrom-Json
     $maximumId = 0L
     foreach ($rootName in @('bookmark_bar', 'other', 'synced')) {
@@ -356,12 +372,13 @@ function Publish-Direct($Manifest, [string] $ProfilePath) {
     $roundTripVerification = Get-Content -LiteralPath $temporaryPath -Raw | ConvertFrom-Json
     if ((Get-BookmarkChecksum $roundTripVerification) -ne $roundTripVerification.checksum) {
         Remove-Item -LiteralPath $temporaryPath -Force
-        throw 'Generated Chrome bookmark checksum verification failed.'
+        throw "Generated $BrowserName bookmark checksum verification failed."
     }
 
     Move-Item -LiteralPath $temporaryPath -Destination $bookmarksPath -Force
     return [pscustomobject]@{
         Mode = 'Direct'
+        Browser = $BrowserName
         BookmarksPath = $bookmarksPath
         BackupPath = $backupPath
         Topic = $Manifest.title
@@ -386,26 +403,65 @@ if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $OutputDirectory = Split-Path -Parent $resolvedManifestPath
 }
 
+$targets = @()
+if ($Browser -in @('Chrome', 'Both')) {
+    $targets += [pscustomobject]@{
+        Name = 'Chrome'
+        ProcessName = 'chrome'
+        ProfilePath = $ChromeProfilePath
+    }
+}
+if ($Browser -in @('Edge', 'Both')) {
+    $targets += [pscustomobject]@{
+        Name = 'Edge'
+        ProcessName = 'msedge'
+        ProfilePath = $EdgeProfilePath
+    }
+}
+
 if ($Mode -eq 'Import') {
     [pscustomobject]@{
         Mode = 'Import'
+        Browser = $Browser
         ImportPath = Write-ImportFile $manifest $OutputDirectory
         Topic = $manifest.title
     }
     return
 }
 
-try {
-    Publish-Direct $manifest $ChromeProfilePath
-}
-catch {
-    if ($Mode -eq 'Direct') {
-        throw
+if ($Mode -eq 'Direct') {
+    $readyTargets = foreach ($target in $targets) {
+        [pscustomobject]@{
+            Target = $target
+            BookmarksPath = Assert-BrowserReady $target.Name $target.ProcessName $target.ProfilePath
+        }
     }
 
+    foreach ($readyTarget in $readyTargets) {
+        Publish-Direct `
+            $manifest `
+            $readyTarget.Target.Name `
+            $readyTarget.BookmarksPath
+    }
+    return
+}
+
+$failures = [Collections.Generic.List[string]]::new()
+foreach ($target in $targets) {
+    try {
+        $bookmarksPath = Assert-BrowserReady $target.Name $target.ProcessName $target.ProfilePath
+        Publish-Direct $manifest $target.Name $bookmarksPath
+    }
+    catch {
+        $failures.Add("$($target.Name): $($_.Exception.Message)")
+    }
+}
+
+if ($failures.Count -gt 0) {
     [pscustomobject]@{
         Mode = 'ImportFallback'
-        Reason = $_.Exception.Message
+        Browser = $Browser
+        Reason = $failures -join ' '
         ImportPath = Write-ImportFile $manifest $OutputDirectory
         Topic = $manifest.title
     }

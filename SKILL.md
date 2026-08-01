@@ -1,6 +1,6 @@
 ---
 name: learn-with-bookmarks
-description: Investigate and teach a technical topic across one or more repositories, then create a durable local HTML learning guide with a collapsed bookmark tree followed by mandatory Architecture, Sequence, and Data Flow diagrams plus applicable detailed, color-coded C4, component, activity, flow, decision, state, or code diagrams, and publish a structured bookmark folder under Chrome's top-level Imported folder. Use when the user says they want to learn, understand, trace, or get an overview of a feature, flow, architecture, incident, PR, or recent code changes and wants diagrams plus source links/bookmarks.
+description: Investigate and teach a technical topic across one or more repositories, then create a durable local HTML learning guide with a collapsed bookmark tree followed by mandatory Architecture, Sequence, and Data Flow diagrams plus applicable detailed, color-coded C4, component, activity, flow, decision, state, or code diagrams, and publish a structured bookmark folder under Chrome and Microsoft Edge's top-level Imported folders. Use when the user says they want to learn, understand, trace, or get an overview of a feature, flow, architecture, incident, PR, or recent code changes and wants diagrams plus source links/bookmarks.
 ---
 
 # Learn with bookmarks
@@ -39,8 +39,10 @@ Complete all of the following:
    **Data Flow Diagram**.
 7. Create detailed sub-bookmarks that trace the code's execution path in runtime
    order, including cross-service and cross-repository handoffs.
-8. Publish the topic folder under Chrome's top-level `Imported` folder when Chrome is closed.
-9. If direct publication is unavailable, create an import-ready HTML file whose contents Chrome places under `Imported`.
+8. Publish the topic folder under both Chrome and Microsoft Edge's top-level
+   `Imported` folders when each browser is closed.
+9. If direct publication is unavailable for either browser, create one
+   import-ready HTML file that either browser can place under `Imported`.
 10. Keep all generated artifacts in durable storage, never session state or a temporary directory.
 
 ## Durable locations
@@ -61,8 +63,8 @@ Learning Bookmarks\
     import-<topic-slug>-bookmarks.html
 ```
 
-The JSON file is the publisher manifest, not a Chrome-import format. Chrome imports
-Netscape bookmark HTML.
+The JSON file is the publisher manifest, not a browser-import format. Chrome and
+Edge import Netscape bookmark HTML.
 
 Never place durable output in:
 
@@ -415,8 +417,8 @@ Required behavior:
 - nested indentation clearly communicates hierarchy;
 - keyboard navigation uses native browser behavior;
 - no external library or network resource is required;
-- the tree order and names exactly match the generated Chrome bookmarks;
-- the tree remains usable independently of Chrome's bookmark popup.
+- the tree order and names exactly match the generated browser bookmarks;
+- the tree remains usable independently of the browser bookmark popup.
 
 The generated tree uses native `<details>` and `<summary>` elements. Add the
 `open` attribute only to the topic-root `<details>` element. Never add it to
@@ -428,7 +430,7 @@ target="_blank" rel="noopener noreferrer"
 
 Do not manually duplicate the manifest into the tree. Generate the manifest
 first, then run the publisher; it replaces the marker block with the canonical
-tree. This prevents the HTML tree and Chrome bookmark hierarchy from drifting.
+tree. This prevents the HTML tree and browser bookmark hierarchies from drifting.
 
 ### Mandatory visual language
 
@@ -858,41 +860,53 @@ Top-level `links` are optional. The publisher always inserts the overview link f
 
 ## Publish
 
-Before running the publisher, check whether any Chrome process is running.
+Before running the publisher, check whether Chrome or Edge processes are running.
 
-1. If Chrome is closed, run `-Mode Direct`.
-2. If Chrome is running and the interaction supports questions, ask the user to
-   choose between:
-   - closing Chrome completely so direct publication can proceed; or
-   - keeping Chrome open and generating the manual import file.
+1. If both browsers are closed, run `-Mode Direct`.
+2. If either browser is running and the interaction supports questions, ask the
+   user to choose between:
+   - closing the running browser completely so direct publication can proceed; or
+   - keeping it open and generating the manual import file.
 3. When the user chooses direct publication, wait for their confirmation, check
-   again that no Chrome process remains, and then run `-Mode Direct`. Do not fall
-   back to import without telling them.
-4. When questions are unavailable or the user chooses to keep Chrome open, run
-   `-Mode Import` and clearly state that restarting Chrome does not import the
-   file automatically.
+   again that no Chrome or Edge process remains, and then run `-Mode Direct`.
+   Do not fall back to import without telling them.
+4. When questions are unavailable or the user chooses to keep a browser open,
+   run `-Mode Auto`. It publishes directly to each closed browser and creates
+   one import file for browsers it could not update. Clearly state that restarting
+   a browser does not import the file automatically.
 
 Run the bundled publisher:
 
 ```powershell
 & "<skill-directory>\scripts\Publish-LearningBookmarks.ps1" `
   -ManifestPath "<topic-folder>\<topic-slug>-bookmarks.json" `
+  -Browser Both `
   -Mode Direct
 ```
 
-Use `-Mode Import` instead only when the user chose the fallback or questions are
-unavailable.
+Use `-Browser Chrome` or `-Browser Edge` only when the user explicitly wants a
+single browser. Use `-Mode Import` when the user explicitly requests an import
+file without direct publication.
 
 Modes:
 
-- `Auto`: directly updates Chrome if it is closed; otherwise creates import HTML.
-- `Direct`: requires Chrome to be closed; backs up and updates the Default profile.
-- `Import`: only creates Netscape bookmark HTML.
+- `Auto`: updates each selected closed browser and creates import HTML when any
+  selected browser cannot be updated.
+- `Direct`: requires all selected browsers to be closed, preflights them, then
+  backs up and updates their Default profiles.
+- `Import`: only creates browser-compatible Netscape bookmark HTML.
+
+Browser targets:
+
+- `Both`: Chrome and Edge; this is the default.
+- `Chrome`: Chrome only.
+- `Edge`: Microsoft Edge only.
 
 Direct mode:
 
-- targets Chrome's `Default` profile unless overridden;
-- creates a timestamped backup;
+- targets each browser's `Default` profile unless overridden with
+  `-ChromeProfilePath` or `-EdgeProfilePath`;
+- creates a timestamped backup for each updated browser;
 - creates or reuses top-level `Imported` on the bookmarks bar;
 - replaces the same-named topic folder, making reruns idempotent;
 - recalculates Chromium's bookmark checksum;
@@ -911,7 +925,7 @@ the user asks to change this skill or any bundled script/template:
 2. Modify only the skill files needed for the request.
 3. Validate affected scripts, templates, and generated behavior.
 4. Inspect the Git diff and ensure it contains no generated learning artifacts,
-   temporary files, credentials, Chrome profile data, or unrelated user files.
+   temporary files, credentials, browser profile data, or unrelated user files.
 5. Commit the completed skill change with a concise descriptive message.
 6. Push the current branch to the configured `origin` remote.
 7. Do not report the skill update as complete until the push succeeds.
@@ -923,15 +937,17 @@ Normal `/learn-with-bookmarks` runs create learning artifacts but do not modify
 or commit the skill repository. Commit and push only when the skill
 implementation, instructions, scripts, or templates change.
 
-Never terminate Chrome. Ask the user to close it for direct publication; use the
-fallback only when they choose not to close it or interactive confirmation is
-unavailable.
+Never terminate Chrome or Edge. Ask the user to close running browsers for direct
+publication; use the fallback only when they choose not to close them or
+interactive confirmation is unavailable.
 
-Import mode intentionally emits only the topic folder. Chrome itself creates the
-top-level `Imported` folder during import. Tell the user to use:
+Import mode intentionally emits only the topic folder. Chrome or Edge creates the
+top-level `Imported` folder during import. Tell the user to use the applicable
+bookmark manager:
 
 ```text
 Chrome Bookmark Manager -> three-dot menu -> Import bookmarks
+Edge Favorites -> three-dot menu -> Import favorites
 ```
 
 ## Completion response
@@ -940,7 +956,7 @@ Lead with the result and provide:
 
 - overview HTML path;
 - bookmark manifest path;
-- whether direct publication succeeded;
+- whether direct publication succeeded for Chrome and Edge;
 - fallback import path when generated;
 - the invocation for next time:
 
