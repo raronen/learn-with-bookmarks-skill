@@ -488,6 +488,59 @@ sections for every learning guide:
 These diagrams are mandatory even when concise. They must provide three distinct
 views and must not be copies of one another.
 
+### Mandatory end-to-end detail level
+
+Treat the Architecture and Sequence diagrams as the guide's primary teaching
+artifacts, not as summaries. Give them the same depth as the investigated runtime
+trace even when the user does not explicitly ask for extra detail.
+
+For every **Architecture Diagram**:
+
+- include every materially participating service, deployable unit, gateway,
+  orchestrator, module, identity component, queue, cache, and data store that is
+  supported by evidence;
+- expand important services into their internal components when those components
+  own distinct runtime responsibilities; do not collapse a traced chain into one
+  generic service box;
+- state what each node does in this flow, not merely its product or class name;
+- label every meaningful connector with the concrete operation or protocol and
+  the important data carried, such as identifiers, tokens, claims, request DTOs,
+  events, commands, configuration, persisted records, status, or errors;
+- show repository, service, deployment, trust, tenant, region, and external-system
+  boundaries whenever they affect ownership or execution;
+- show synchronous, asynchronous, parallel, retry, polling, callback, fan-out,
+  fan-in, and rollback paths explicitly instead of describing them only in prose;
+- retain important external or unavailable components as evidence-qualified nodes
+  and clearly label what is observed versus inferred or not present in the
+  investigated repositories.
+
+For every **Sequence Diagram**:
+
+- include all materially distinct participants found in the end-to-end trace,
+  including front doors, middleware, validators, handlers, orchestrators, stores,
+  downstream services, workers, callbacks, and the initiating client;
+- show the complete primary path from the first externally observable request or
+  trigger through the final response, status update, callback, or persisted result;
+- label each message with the real method, endpoint, command, event, or operation
+  when known, followed by the key payload fields or result passed between
+  participants;
+- show request parsing, authentication, authorization, validation, enrichment,
+  orchestration decisions, persistence, downstream execution, response mapping,
+  and completion notification when they participate;
+- use `alt`, `opt`, `loop`, and parallel group visual regions for feature gates,
+  cache hit/miss, retries, polling, asynchronous work, failures, and compensation;
+- draw return messages and error propagation back through the same boundaries;
+- keep enough vertical spacing and label wrapping to remain readable; when the
+  full trace cannot fit legibly in one diagram, use one detailed primary sequence
+  plus focused continuation sequences rather than omitting participants or
+  interactions.
+
+Before publishing, compare both diagrams against the execution bookmark tree.
+Every material runtime phase and cross-service handoff in the tree must appear in
+the Architecture Diagram and in the appropriate position in the Sequence Diagram.
+If a diagram intentionally omits a secondary branch for readability, link to a
+focused diagram that contains it.
+
 ### Diagram type fidelity
 
 Do not create a collection of generic cards and merely label it with a diagram

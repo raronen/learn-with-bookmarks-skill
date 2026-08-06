@@ -8,6 +8,10 @@ repositories and produces:
 - a detailed bookmark tree ordered by the code's actual execution path across
   repositories and services, independent of the HTML diagram sections;
 - mandatory color-coded Architecture, Sequence, and Data Flow diagrams;
+- architecture and sequence diagrams that preserve the full investigated
+  end-to-end detail: participating services and internal components, concrete
+  responsibilities, labeled operations and payloads, boundaries, parallel work,
+  retries, failures, callbacks, and rollback paths;
 - applicable C4, component, activity, flow, decision, state, and code diagrams;
 - strict visual grammar so sequence diagrams use lifelines/messages, decisions
   use diamonds/labeled branches, state machines use transitions, and data-flow
