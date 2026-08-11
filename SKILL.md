@@ -821,9 +821,15 @@ template.
   at the exact handoff point instead of grouping all links by repository;
 - include the caller immediately before the callee so a reader can follow each
   boundary crossing;
-- use numbered action-oriented names that explain what executes, optionally
-  including the owner in parentheses, for example
-  `04. DPVS client sends logical-model request (DPVS)`;
+- use numbered action-oriented names that explain what executes;
+- when the execution trace spans multiple repositories and multiple services,
+  prefix every executable bookmark action with `[<Repository>-<Service>]` after
+  its sequence number, for example
+  `04. [Azure-Kusto-WebUX-Query Client] Client sends query request`; use the
+  exact repository name and a concise, stable service or deployable-component
+  name so every cross-boundary step carries its ownership context;
+- omit the repository-service prefix for single-repository or single-service
+  guides, where it would add noise without disambiguating ownership;
 - create folders only for meaningful runtime phases, boundary crossings, or
   branches that improve navigation;
 - preserve nested execution order inside every folder;
