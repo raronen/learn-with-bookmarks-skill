@@ -264,9 +264,15 @@ Trace:
 - relevant historical implementation for "before" nodes.
 
 Treat telemetry as evidence, not an assumption. Record the exact query text or
-saved-query/view identity, data scope, and component filter needed to isolate the
-node. If the telemetry or its component mapping cannot be verified, omit the
-telemetry link and state the evidence gap rather than inventing a query.
+saved-query/view identity, data scope, and the strongest verified filter for the
+component or correlated component family. A shared service telemetry query is
+valid for every participating node when it uses a verified correlation key,
+service prefix, operation family, or trace source that contains those nodes'
+events; reuse that link rather than withholding telemetry merely because the
+store does not expose a narrower per-class discriminator. Explain the shared
+scope in the telemetry view. If neither a node-specific nor a verified shared
+component-family mapping can be established, omit the telemetry link and state
+the evidence gap rather than inventing a query.
 
 For recent changes:
 
@@ -283,10 +289,11 @@ Prefer permanent web links that the user can open outside the local checkout.
 ### Telemetry deep links
 
 When telemetry for a diagram node is known, provide a durable deep link labeled
-`Telemetry` that opens the exact query or saved view for that component. This
-applies to Architecture, Sequence, Data Flow, Flowchart/Decision Tree, Component,
-C4, Activity, State Machine, and Code/Class nodes whenever the node has its own
-observable telemetry.
+`Telemetry` that opens the exact query or saved view for that component or its
+verified correlated component family. This applies to Architecture, Sequence,
+Data Flow, Flowchart/Decision Tree, Component, C4, Activity, State Machine, and
+Code/Class nodes whenever the node has observable telemetry directly or through
+a shared service trace stream.
 
 - Prefer the telemetry system's native share/copy-link feature, such as Azure
   Monitor Logs/Application Insights, Azure Data Explorer, a workbook, or an
@@ -295,12 +302,21 @@ observable telemetry.
   scope, and it must filter to the node using verified service, component,
   operation, role, resource, or correlation fields. A workspace, cluster, or
   dashboard home page is not sufficient.
+- A query filtered by a verified end-to-end correlation prefix or service trace
+  family may be reused on all nodes covered by that stream. It does not need a
+  unique per-node predicate when the telemetry schema has no such discriminator.
+  Prefer broad, useful correlated telemetry over omitting links from observable
+  nodes; state the query's shared scope in the guide.
 - Use a sensible reusable time-range behavior. Prefer a destination that lets the
   viewer choose or override time unless a fixed incident window is essential;
   label fixed-window links with that window.
+- End row-returning exploratory telemetry queries with `| limit 10` by default
+  so opening a guide does not launch an unnecessarily long or expensive query.
+  Place the limit after the final ordering operator. A bounded aggregate, scalar,
+  or saved view that cannot return an unbounded row set does not need this limit.
 - Verify a representative telemetry link for every telemetry system used. It
   must open the intended workspace/cluster/view and restore the expected
-  node-specific query or saved view.
+  node-specific or correlated component-family query or saved view.
 - Never guess table names, fields, filters, workspace/cluster identifiers, or
   query text. Never embed credentials, access tokens, secrets, customer data, or
   sensitive identifiers in the URL. Follow the telemetry system's access model.
@@ -789,8 +805,8 @@ Every visual node should contain:
 - a visible type/status badge that agrees with the legend;
 - a clickable source, documentation, test, historical version, or related
   bookmark link when one exists;
-- a separately named `Telemetry` link when verified node-specific telemetry is
-  known;
+- a separately named `Telemetry` link when verified node-specific or correlated
+  component-family telemetry is known;
 - a tooltip or visible source label when useful.
 
 Clickable behavior:
