@@ -268,14 +268,15 @@ Trace:
 
 Treat telemetry as evidence, not an assumption. Record the exact query text or
 saved-query/view identity, data scope, and the strongest verified filter for the
-component or correlated component family. A shared service telemetry query is
-valid for every participating node when it uses a verified correlation key,
-service prefix, operation family, or trace source that contains those nodes'
-events; reuse that link rather than withholding telemetry merely because the
-store does not expose a narrower per-class discriminator. Explain the shared
-scope in the telemetry view. If neither a node-specific nor a verified shared
-component-family mapping can be established, omit the telemetry link and state
-the evidence gap rather than inventing a query.
+specific runtime place represented by each node. An end-to-end correlation key,
+service prefix, or operation family may be the common base of several queries,
+but it is not sufficient by itself for links on different components or stages.
+Each query must add a verified discriminator such as source, directory, role,
+activity type, operation, level, event name/text, or component identifier that
+narrows results to that node's place in the flow. Reuse a query only when nodes
+are repeated views of the same runtime place. If a distinct node-specific
+mapping cannot be established, omit its telemetry link and state the evidence
+gap rather than attaching a broad flow-wide query.
 
 For recent changes:
 
@@ -292,24 +293,28 @@ Prefer permanent web links that the user can open outside the local checkout.
 ### Telemetry deep links
 
 When telemetry for a diagram node is known, provide a durable deep link labeled
-`Telemetry` that opens the exact query or saved view for that component or its
-verified correlated component family. This applies to Architecture, Sequence,
-Data Flow, Flowchart/Decision Tree, Component, C4, Activity, State Machine, and
-Code/Class nodes whenever the node has observable telemetry directly or through
-a shared service trace stream.
+`Telemetry` that opens the exact query or saved view for that specific runtime
+place. This applies to Architecture, Sequence, Data Flow, Flowchart/Decision
+Tree, Component, C4, Activity, State Machine, and Code/Class nodes whenever the
+node has observable, distinguishable telemetry.
 
 - Prefer the telemetry system's native share/copy-link feature, such as Azure
   Monitor Logs/Application Insights, Azure Data Explorer, a workbook, or an
   exact dashboard panel.
 - The destination must preserve or identify the executable query and its data
-  scope, and it must filter to the node using verified service, component,
-  operation, role, resource, or correlation fields. A workspace, cluster, or
-  dashboard home page is not sufficient.
-- A query filtered by a verified end-to-end correlation prefix or service trace
-  family may be reused on all nodes covered by that stream. It does not need a
-  unique per-node predicate when the telemetry schema has no such discriminator.
-  Prefer broad, useful correlated telemetry over omitting links from observable
-  nodes; state the query's shared scope in the guide.
+  scope. Start with the verified end-to-end correlation filter when useful, then
+  add verified service, component, directory, operation, activity type, role,
+  resource, level, event, or source predicates that isolate the runtime place
+  shown by the node. A workspace, cluster, dashboard home, or undifferentiated
+  flow-wide query is not sufficient.
+- Never reuse one unchanged broad correlation query across different components,
+  layers, stages, decisions, caches, failure paths, or response paths. Reuse is
+  allowed only for repeated appearances of the same runtime place in different
+  diagrams.
+- When the telemetry schema cannot distinguish a node from the broader flow,
+  omit that node's `Telemetry` link and document the evidence gap. Do not add a
+  cosmetic scope label, projection, comment, or constant without a narrowing
+  predicate and call it node-specific.
 - Use a sensible reusable time-range behavior. Prefer a destination that lets the
   viewer choose or override time unless a fixed incident window is essential;
   label fixed-window links with that window.
@@ -319,7 +324,9 @@ a shared service trace stream.
   or saved view that cannot return an unbounded row set does not need this limit.
 - Verify a representative telemetry link for every telemetry system used. It
   must open the intended workspace/cluster/view and restore the expected
-  node-specific or correlated component-family query or saved view.
+  node-specific query or saved view. Also compare every distinct telemetry link
+  in the rendered guide: different runtime places must have different verified
+  narrowing predicates, not merely different labels or URLs.
 - Never guess table names, fields, filters, workspace/cluster identifiers, or
   query text. Never embed credentials, access tokens, secrets, customer data, or
   sensitive identifiers in the URL. Follow the telemetry system's access model.
