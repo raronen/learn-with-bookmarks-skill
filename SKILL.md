@@ -1,6 +1,6 @@
 ---
 name: learn-with-bookmarks
-description: Investigate and teach a technical topic across one or more repositories, then create a durable local HTML learning guide with a collapsed bookmark tree followed by mandatory Architecture, Sequence, and Data Flow diagrams plus applicable detailed, color-coded C4, component, activity, flow, decision, state, or code diagrams, and publish a structured bookmark folder under Chrome and Microsoft Edge's top-level Imported folders. Use when the user says they want to learn, understand, trace, or get an overview of a feature, flow, architecture, incident, PR, or recent code changes and wants diagrams plus source links/bookmarks.
+description: Investigate and teach a technical topic across one or more repositories, then create a durable local HTML learning guide with a collapsed bookmark tree followed by mandatory Architecture, Sequence, and Data Flow diagrams plus applicable detailed, color-coded C4, component, activity, flow, decision, state, or code diagrams, direct component-specific telemetry query links when known, and a structured bookmark folder published under Chrome and Microsoft Edge's top-level Imported folders. Use when the user says they want to learn, understand, trace, or get an overview of a feature, flow, architecture, incident, PR, or recent code changes and wants diagrams plus source, telemetry, or bookmark links.
 ---
 
 # Learn with bookmarks
@@ -33,17 +33,20 @@ Complete all of the following:
    first, followed by detailed, color-coded diagrams applicable to the topic.
 4. Make every diagram node clickable when a precise source or related bookmark
    exists.
-5. Add applicable Example, Before/After, Hardening, Cross-repo, and Tests
+5. When a component's telemetry is known, add a clearly named `Telemetry` link
+   to that component's applicable diagram nodes. The link must open the exact
+   telemetry query or view scoped to that node, not a generic workspace home.
+6. Add applicable Example, Before/After, Hardening, Cross-repo, and Tests
    learning views with prominent same-page navigation.
-6. Always include an **Architecture Diagram**, **Sequence Diagram**, and
+7. Always include an **Architecture Diagram**, **Sequence Diagram**, and
    **Data Flow Diagram**.
-7. Create detailed sub-bookmarks that trace the code's execution path in runtime
+8. Create detailed sub-bookmarks that trace the code's execution path in runtime
    order, including cross-service and cross-repository handoffs.
-8. Publish the topic folder under both Chrome and Microsoft Edge's top-level
+9. Publish the topic folder under both Chrome and Microsoft Edge's top-level
    `Imported` folders when each browser is closed.
-9. If direct publication is unavailable for either browser, create one
+10. If direct publication is unavailable for either browser, create one
    import-ready HTML file that either browser can place under `Imported`.
-10. Keep all generated artifacts in durable storage, never session state or a temporary directory.
+11. Keep all generated artifacts in durable storage, never session state or a temporary directory.
 
 ## Durable locations
 
@@ -86,7 +89,8 @@ The user may start in a Home/chat session and select several repositories.
    - the requested date/author/commit scope, if any;
    - the facts and call chains to trace;
    - a requirement to report precise repo-relative paths, symbols, line ranges,
-     commits, tests, and before/after behavior;
+     commits, tests, before/after behavior, and verified component-specific
+     telemetry queries or views when known;
    - an instruction not to modify code.
 5. Run independent repository research in parallel.
 6. Wait for and aggregate all child reports before generating artifacts.
@@ -254,7 +258,15 @@ Trace:
 - output assembly and execution;
 - failure paths and feature gates;
 - tests proving the important behavior;
+- telemetry emitted, component identifiers/correlation fields, telemetry stores,
+  and existing queries, dashboards, or workbooks that observe each material
+  component when this evidence is available;
 - relevant historical implementation for "before" nodes.
+
+Treat telemetry as evidence, not an assumption. Record the exact query text or
+saved-query/view identity, data scope, and component filter needed to isolate the
+node. If the telemetry or its component mapping cannot be verified, omit the
+telemetry link and state the evidence gap rather than inventing a query.
 
 For recent changes:
 
@@ -267,6 +279,33 @@ For recent changes:
 ## Source-link rules
 
 Prefer permanent web links that the user can open outside the local checkout.
+
+### Telemetry deep links
+
+When telemetry for a diagram node is known, provide a durable deep link labeled
+`Telemetry` that opens the exact query or saved view for that component. This
+applies to Architecture, Sequence, Data Flow, Flowchart/Decision Tree, Component,
+C4, Activity, State Machine, and Code/Class nodes whenever the node has its own
+observable telemetry.
+
+- Prefer the telemetry system's native share/copy-link feature, such as Azure
+  Monitor Logs/Application Insights, Azure Data Explorer, a workbook, or an
+  exact dashboard panel.
+- The destination must preserve or identify the executable query and its data
+  scope, and it must filter to the node using verified service, component,
+  operation, role, resource, or correlation fields. A workspace, cluster, or
+  dashboard home page is not sufficient.
+- Use a sensible reusable time-range behavior. Prefer a destination that lets the
+  viewer choose or override time unless a fixed incident window is essential;
+  label fixed-window links with that window.
+- Verify a representative telemetry link for every telemetry system used. It
+  must open the intended workspace/cluster/view and restore the expected
+  node-specific query or saved view.
+- Never guess table names, fields, filters, workspace/cluster identifiers, or
+  query text. Never embed credentials, access tokens, secrets, customer data, or
+  sensitive identifiers in the URL. Follow the telemetry system's access model.
+- HTML-encode `&` as `&amp;` in generated HTML. Keep the underlying URL
+  correctly URL-encoded.
 
 ### Azure DevOps
 
@@ -539,7 +578,9 @@ Before publishing, compare both diagrams against the execution bookmark tree.
 Every material runtime phase and cross-service handoff in the tree must appear in
 the Architecture Diagram and in the appropriate position in the Sequence Diagram.
 If a diagram intentionally omits a secondary branch for readability, link to a
-focused diagram that contains it.
+focused diagram that contains it. Also verify that every known component-specific
+telemetry link appears on each applicable node and opens the intended query or
+saved view rather than a generic telemetry landing page.
 
 ### Diagram type fidelity
 
@@ -748,14 +789,19 @@ Every visual node should contain:
 - a visible type/status badge that agrees with the legend;
 - a clickable source, documentation, test, historical version, or related
   bookmark link when one exists;
+- a separately named `Telemetry` link when verified node-specific telemetry is
+  known;
 - a tooltip or visible source label when useful.
 
 Clickable behavior:
 
 - clicking a node with one primary reference opens that reference in a new tab;
 - when a node has several useful references, provide individually named links
-  inside the node, such as `Implementation`, `Interface`, `Tests`, `Before`, or
-  `Related bookmark`;
+  inside the node, such as `Implementation`, `Interface`, `Tests`, `Telemetry`,
+  `Before`, or `Related bookmark`;
+- keep `Telemetry` separate from implementation and test links; it opens the
+  exact query or saved view for that node and must not become the node's primary
+  click target when doing so would hide other references;
 - internal links to another diagram or bookmark-tree destination are allowed;
 - use `target="_blank" rel="noopener noreferrer"` for external and local-file
   links so the overview remains open;
@@ -853,6 +899,9 @@ template.
 - omit declarations, DTOs, tests, documentation, and historical code from the
   execution tree unless they execute or directly define a runtime step. They can
   still be linked from diagram nodes and learning views;
+- keep telemetry queries and dashboards on the applicable diagram nodes or
+  learning views rather than adding them to the runtime execution tree, unless
+  querying or emitting that telemetry is itself part of the executed flow;
 - avoid duplicate bookmarks unless the same code genuinely executes at multiple
   distinct points; distinguish repeated execution in the bookmark names.
 

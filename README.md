@@ -19,6 +19,8 @@ repositories and produces:
 - ARM MCP investigation and management-plane end-to-end views for features
   invoked through Azure Resource Manager;
 - source-linked Example, Before/After, Hardening, Cross-repo, and Tests views;
+- verified component-specific telemetry links that open the exact query or saved
+  view directly from applicable diagram nodes;
 - a PR-learning mode that resolves Azure DevOps PRs, analyzes base-versus-PR
   behavior, and links directly to precise ranges in the PR Files experience;
 - structured Chrome and Microsoft Edge bookmark folders under `Imported`.
