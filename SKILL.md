@@ -736,6 +736,13 @@ Applicability rules:
 Use normal HTML/CSS nodes and arrows so the file works offline without Mermaid.
 Every visual node should contain:
 
+- when the guide spans multiple repositories and multiple services, a visible
+  first-line `[<Repository>-<Service>]` ownership prefix or badge on every node
+  in every flow, including actors, sequence participants, processes, services,
+  components, decisions, stores, caches, queues, states, failures, and terminal
+  results; use the exact repository name and a concise stable service or
+  deployable-component name, and keep this label readable by wrapping it onto a
+  dedicated line rather than abbreviating away ownership context;
 - a short title;
 - one or more concise detail lines sufficient to understand its role;
 - a visible type/status badge that agrees with the legend;
