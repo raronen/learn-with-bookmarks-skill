@@ -829,7 +829,10 @@ Every visual node should contain:
 
 Clickable behavior:
 
-- clicking a node with one primary reference opens that reference in a new tab;
+- clicking a node with one primary reference opens that reference in a new tab,
+  and the node also shows a visible named link such as `Code`, `Docs`, `Tests`,
+  or `Before`; do not rely on an invisible whole-node click target as the only
+  indication that evidence exists;
 - when a node has several useful references, provide individually named links
   inside the node, such as `Implementation`, `Interface`, `Tests`, `Telemetry`,
   `Before`, or `Related bookmark`;
@@ -844,6 +847,9 @@ Clickable behavior:
   links so the overview remains open;
 - never invent a link or attach an unrelated source merely to make a node
   clickable;
+- when a node has no verified source in the investigated repositories, say so
+  visibly inside the node, for example `Code unavailable in investigated
+  repositories`, instead of leaving an unlabeled non-clickable rectangle;
 - visually distinguish clickable nodes from explanatory nodes without links;
 - diagrams may link directly to source, another diagram, or a related execution
   bookmark, but diagram sections must not define the bookmark hierarchy.

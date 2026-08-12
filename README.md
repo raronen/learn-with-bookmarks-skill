@@ -19,6 +19,8 @@ repositories and produces:
 - ARM MCP investigation and management-plane end-to-end views for features
   invoked through Azure Resource Manager;
 - source-linked Example, Before/After, Hardening, Cross-repo, and Tests views;
+- visibly labeled `Code`, `Docs`, or other evidence links on diagram nodes,
+  with explicit evidence-gap labels instead of ambiguous unlinked rectangles;
 - verified runtime-place-specific telemetry links that open a genuinely narrowed
   query or saved view from every applicable diagram node, with exploratory row
   results capped at 10 by default and an adjacent node-specific `Code`
