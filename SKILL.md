@@ -34,10 +34,10 @@ Complete all of the following:
 4. Make every diagram node clickable when a precise source or related bookmark
    exists.
 5. When a component's telemetry is known, add a clearly named `Telemetry` link
-   to that component's applicable diagram nodes. Place a clearly named `ADO`
+   to that component's applicable diagram nodes. Place a clearly named `Code`
    link beside every `Telemetry` link when the implementation is hosted in Azure
    DevOps. `Telemetry` must open the exact query or view scoped to that node, not
-   a generic workspace home; `ADO` must open the corresponding implementation or
+   a generic workspace home; `Code` must open the corresponding implementation or
    telemetry-emission code.
 6. Add applicable Example, Before/After, Hardening, Cross-repo, and Tests
    learning views with prominent same-page navigation.
@@ -333,9 +333,9 @@ node has observable, distinguishable telemetry.
 - HTML-encode `&` as `&amp;` in generated HTML. Keep the underlying URL
   correctly URL-encoded.
 - In Azure DevOps-backed guides, pair every visible `Telemetry` link with a
-  visible adjacent `ADO` link to the most precise implementation or emission
+  visible adjacent `Code` link to the most precise implementation or emission
   site for that node. Even when several nodes share one correlated telemetry
-  query, keep each node's `ADO` destination specific to its own code. Do not use
+  query, keep each node's `Code` destination specific to its own code. Do not use
   a repository summary page when a file and line range are known.
 
 ### Azure DevOps
@@ -822,7 +822,7 @@ Every visual node should contain:
   bookmark link when one exists;
 - a separately named `Telemetry` link when verified node-specific or correlated
   component-family telemetry is known;
-- for Azure DevOps-hosted code, a separately named `ADO` link immediately beside
+- for Azure DevOps-hosted code, a separately named `Code` link immediately beside
   every `Telemetry` link, targeting that node's precise implementation or
   telemetry-emission range;
 - a tooltip or visible source label when useful.
@@ -836,9 +836,9 @@ Clickable behavior:
 - keep `Telemetry` separate from implementation and test links; it opens the
   exact query or saved view for that node and must not become the node's primary
   click target when doing so would hide other references;
-- render `ADO` and `Telemetry` as an explicit adjacent pair. The node itself may
+- render `Code` and `Telemetry` as an explicit adjacent pair. The node itself may
   remain clickable to the same source, but that does not replace the visible
-  `ADO` label;
+  `Code` label;
 - internal links to another diagram or bookmark-tree destination are allowed;
 - use `target="_blank" rel="noopener noreferrer"` for external and local-file
   links so the overview remains open;

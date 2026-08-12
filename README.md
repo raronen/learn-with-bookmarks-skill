@@ -21,7 +21,7 @@ repositories and produces:
 - source-linked Example, Before/After, Hardening, Cross-repo, and Tests views;
 - verified runtime-place-specific telemetry links that open a genuinely narrowed
   query or saved view from every applicable diagram node, with exploratory row
-  results capped at 10 by default and an adjacent node-specific `ADO`
+  results capped at 10 by default and an adjacent node-specific `Code`
   implementation link;
 - a PR-learning mode that resolves Azure DevOps PRs, analyzes base-versus-PR
   behavior, and links directly to precise ranges in the PR Files experience;
