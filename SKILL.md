@@ -51,6 +51,60 @@ Complete all of the following:
    import-ready HTML file that either browser can place under `Imported`.
 11. Keep all generated artifacts in durable storage, never session state or a temporary directory.
 
+## Beginner-first teaching baseline
+
+Unless the user explicitly asks for an expert-only treatment, write every guide
+so that a new joiner with no prior knowledge of the product, repository, or
+domain can understand it. Prefer plain, respectful language over unexplained
+jargon; "for beginners" must mean more context and clearer teaching, not a
+patronizing tone or reduced technical accuracy.
+
+Before presenting implementation details:
+
+1. Add a prominent **Start here** section that explains:
+   - what the product or subsystem is;
+   - what user or business problem it solves;
+   - where the selected feature sits in the larger system;
+   - why the feature exists and what would happen without it;
+   - which parts are authoritative state versus caches, replicas, indexes,
+    projections, queues, or other disposable/derived state.
+2. Introduce one realistic end-to-end example in familiar language and reuse it
+   consistently throughout the terminology, diagrams, failure paths, and tests.
+3. Define every domain term, acronym, internal codename, and overloaded word on
+   first use. For each important term, explain:
+   - what it is in plain English;
+   - why this system needs it;
+   - what it contains or controls;
+   - what it is commonly confused with or explicitly is not;
+   - a concrete example or analogy when that improves understanding.
+4. Give the reader a compact mental model in one or two sentences before the
+   detailed architecture. A useful pattern is: "The system does X so that Y;
+   when Z fails, it recovers by W."
+5. Use progressive disclosure:
+   - begin with product context and the happy path;
+   - then introduce components and terminology;
+   - then show persistence, concurrency, failure, recovery, and optimization;
+   - keep precise source links available without requiring source-code knowledge
+    to understand the main story.
+
+For every diagram, add a short **How to read it** paragraph immediately before
+the visual. Explain the reading direction, the scenario being shown, unfamiliar
+participants, and the one key takeaway. Diagram node labels must prefer a plain
+role followed by the code name, for example `Official cache index (Catalog)`,
+rather than showing only an internal type or method name.
+
+Before publishing, perform a new-joiner pass:
+
+- Could a reader explain the feature's purpose before seeing a class or method?
+- Is every acronym and internal term expanded before use?
+- Does each technical term have enough context to distinguish it from nearby
+  concepts?
+- Can the concrete example be followed from input through result and recovery?
+- Can each diagram be understood without first reading the source code?
+- Are advanced details preserved but placed after the foundational explanation?
+
+If any answer is no, revise the guide before publication.
+
 ## Durable locations
 
 Use this root unless the user explicitly chooses another:

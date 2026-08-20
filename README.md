@@ -4,6 +4,12 @@ A persistent Copilot skill that investigates technical topics across one or more
 repositories and produces:
 
 - a durable, self-contained HTML learning guide;
+- a beginner-first `Start here` foundation that explains the product, problem,
+  system context, happy path, terminology, and source-of-truth boundaries before
+  implementation details;
+- plain-English first-use definitions, a consistent concrete example or analogy,
+  progressive disclosure, and `How to read it` guidance for every diagram so a
+  new joiner can learn without prior domain or repository knowledge;
 - an expanded top-level bookmark tree with collapsed nested folders;
 - a detailed bookmark tree ordered by the code's actual execution path across
   repositories and services, independent of the HTML diagram sections;
