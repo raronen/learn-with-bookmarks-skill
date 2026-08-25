@@ -807,6 +807,14 @@ examples of the desired semantics, not acceptable final rendering.
 
 For every diagram:
 
+- set SVG node colors with SVG properties such as `fill` and `stroke`; CSS
+  `background` and `border` do not color SVG shapes and can leave them at the
+  browser's default black;
+- set SVG text colors explicitly and keep every node label at WCAG AA contrast
+  against its actual rendered fill; never rely on inherited page text colors;
+- visually inspect at least the Architecture and Sequence diagrams in a browser
+  before publishing, and correct any black/default-filled, low-contrast, clipped,
+  or unreadable nodes;
 - size nodes and labels for comfortable reading without zooming;
 - keep the primary reading direction obvious;
 - use whitespace and alignment to communicate grouping;
