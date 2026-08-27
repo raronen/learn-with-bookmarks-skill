@@ -90,6 +90,34 @@ Before presenting implementation details:
    - keep precise source links available without requiring source-code knowledge
     to understand the main story.
 
+### Concrete-example rule for abstract mechanics
+
+When the topic contains abstract mechanics such as partitioning, hashing,
+concurrency, caching, queues, fan-out, retries, batching, or distributed
+coordination, do not stop at an analogy or architecture diagram. Add a small,
+realistic, row-level or request-level example that:
+
+- uses named entities and concrete sample values that remain consistent across
+  the walkthrough;
+- shows the input before processing, the exact per-step transformation or
+  movement, and the final output;
+- identifies what each machine, process, worker, task, or thread does, including
+  which work happens independently and which state is shared;
+- distinguishes logical units from physical resources, such as partitions from
+  machines and runtime tasks from permanently dedicated operating-system threads;
+- quantifies the work with small numbers, then compares the unoptimized and
+  optimized paths (for example, source scans, row visits, requests, bytes, or
+  retries saved);
+- explains the cost paid for the optimization, such as hashing, buffering,
+  queueing, coordination, memory, or network transfer;
+- clearly labels sample hash values, timings, assignments, or counts as
+  illustrative when the exact runtime values cannot be reproduced, while keeping
+  verified implementation mechanics and source links separate and explicit.
+
+Prefer tables, labeled buckets, per-machine panels, and before/after counts over
+generic prose. A reader should be able to manually trace one concrete entity
+through every worker and explain where the saved work comes from.
+
 For every diagram, add a short **How to read it** paragraph immediately before
 the visual. Explain the reading direction, the scenario being shown, unfamiliar
 participants, and the one key takeaway. Diagram node labels must prefer a plain
