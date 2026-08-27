@@ -33,7 +33,13 @@ repositories and produces:
   implementation link;
 - a PR-learning mode that resolves Azure DevOps PRs, analyzes base-versus-PR
   behavior, and links directly to precise ranges in the PR Files experience;
-- structured Chrome and Microsoft Edge bookmark folders under `Imported`.
+- a structured Chrome and Microsoft Edge import file that the browser UI places
+  under `Imported` without bypassing Favorites/Bookmarks Sync metadata.
+
+The publisher intentionally never edits Chromium `Bookmarks` profile files.
+Direct JSON writes can corrupt unrelated folder organization when browser sync
+restores stale parent relationships. Use the browser's import command and
+Favorites/Bookmarks Manager for all publication, movement, and grouping.
 
 Invoke it with:
 

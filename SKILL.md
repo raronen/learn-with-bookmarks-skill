@@ -45,10 +45,11 @@ Complete all of the following:
    **Data Flow Diagram**.
 8. Create detailed sub-bookmarks that trace the code's execution path in runtime
    order, including cross-service and cross-repository handoffs.
-9. Publish the topic folder under both Chrome and Microsoft Edge's top-level
-   `Imported` folders when each browser is closed.
-10. If direct publication is unavailable for either browser, create one
-   import-ready HTML file that either browser can place under `Imported`.
+9. Create one import-ready HTML file that Chrome and Microsoft Edge can safely
+   place under their top-level `Imported` folders through the browser UI.
+10. Never modify a browser's `Bookmarks` profile file directly. Raw Chromium
+    profile writes bypass Favorites/Bookmarks Sync metadata and can flatten,
+    reparent, duplicate, or restore unrelated folders.
 11. Keep all generated artifacts in durable storage, never session state or a temporary directory.
 
 ## Beginner-first teaching baseline
@@ -1080,20 +1081,16 @@ Top-level `links` are optional. The publisher always inserts the overview link f
 
 ## Publish
 
-Before running the publisher, check whether Chrome or Edge processes are running.
+Always generate a browser-compatible import file. Browser process state does not
+matter because the publisher must not modify Chrome or Edge profile files.
 
-1. If both browsers are closed, run `-Mode Direct`.
-2. If either browser is running and the interaction supports questions, ask the
-   user to choose between:
-   - closing the running browser completely so direct publication can proceed; or
-   - keeping it open and generating the manual import file.
-3. When the user chooses direct publication, wait for their confirmation, check
-   again that no Chrome or Edge process remains, and then run `-Mode Direct`.
-   Do not fall back to import without telling them.
-4. When questions are unavailable or the user chooses to keep a browser open,
-   run `-Mode Auto`. It publishes directly to each closed browser and creates
-   one import file for browsers it could not update. Clearly state that restarting
-   a browser does not import the file automatically.
+Never directly edit, replace, restore, or reorganize a Chromium `Bookmarks`
+file, even when the browser is closed and a checksum can be recalculated.
+Favorites/Bookmarks Sync tracks parent relationships outside that JSON file.
+Direct file changes can therefore cause unrelated, previously organized folders
+to be flattened or restored from stale sync state. Moving or grouping favorites
+must be done through the browser's Favorites/Bookmarks Manager so sync metadata
+is updated.
 
 Run the bundled publisher:
 
@@ -1101,19 +1098,18 @@ Run the bundled publisher:
 & "<skill-directory>\scripts\Publish-LearningBookmarks.ps1" `
   -ManifestPath "<topic-folder>\<topic-slug>-bookmarks.json" `
   -Browser Both `
-  -Mode Direct
+  -Mode Import
 ```
 
 Use `-Browser Chrome` or `-Browser Edge` only when the user explicitly wants a
-single browser. Use `-Mode Import` when the user explicitly requests an import
-file without direct publication.
+single browser. `-Mode Import` is the required mode.
 
 Modes:
 
-- `Auto`: updates each selected closed browser and creates import HTML when any
-  selected browser cannot be updated.
-- `Direct`: requires all selected browsers to be closed, preflights them, then
-  backs up and updates their Default profiles.
+- `Auto`: safely falls back to import HTML because direct profile editing is
+  disabled.
+- `Direct`: fails without modifying browser data. It remains only for backward
+  compatibility with existing invocations.
 - `Import`: only creates browser-compatible Netscape bookmark HTML.
 
 Browser targets:
@@ -1122,19 +1118,8 @@ Browser targets:
 - `Chrome`: Chrome only.
 - `Edge`: Microsoft Edge only.
 
-Direct mode:
-
-- targets each browser's `Default` profile unless overridden with
-  `-ChromeProfilePath` or `-EdgeProfilePath`;
-- creates a timestamped backup for each updated browser;
-- creates or reuses top-level `Imported` on the bookmarks bar;
-- replaces the same-named topic folder, making reruns idempotent;
-- recalculates Chromium's bookmark checksum;
-- writes atomically;
-- verifies the resulting JSON and checksum.
-
-Before either direct or import publication, the publisher also updates the
-overview HTML's embedded bookmark tree from this manifest.
+Before import publication, the publisher also updates the overview HTML's
+embedded bookmark tree from this manifest.
 
 ## Version control for this skill
 
@@ -1176,12 +1161,12 @@ Lead with the result and provide:
 
 - overview HTML path;
 - bookmark manifest path;
-- whether direct publication succeeded for Chrome and Edge;
-- fallback import path when generated;
+- import path for Chrome and Edge;
+- reminder that import must be completed through the browser UI;
 - the invocation for next time:
 
 ```text
 /learn-with-bookmarks <topic>
 ```
 
-Do not claim direct publication succeeded unless the publisher reports success.
+Do not claim that restarting a browser imports the file automatically.

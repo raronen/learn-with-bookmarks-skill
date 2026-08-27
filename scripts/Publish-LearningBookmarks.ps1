@@ -320,69 +320,7 @@ function Publish-Direct(
     $Manifest,
     [string] $BrowserName,
     [string] $BookmarksPath) {
-    $bookmarksPath = $BookmarksPath
-    $bookmarks = Get-Content -LiteralPath $bookmarksPath -Raw | ConvertFrom-Json
-    $maximumId = 0L
-    foreach ($rootName in @('bookmark_bar', 'other', 'synced')) {
-        $root = Get-PropertyValue $bookmarks.roots $rootName
-        if ($null -ne $root) {
-            $rootMaximum = Get-MaxBookmarkId $root
-            if ($rootMaximum -gt $maximumId) {
-                $maximumId = $rootMaximum
-            }
-        }
-    }
-
-    [long]$nextIdValue = $maximumId + 1
-    $nextId = [ref]$nextIdValue
-    $bookmarkBar = $bookmarks.roots.bookmark_bar
-    $imported = @($bookmarkBar.children) |
-        Where-Object { $_.type -eq 'folder' -and $_.name -eq 'Imported' } |
-        Select-Object -First 1
-
-    if ($null -eq $imported) {
-        $importedSeed = [pscustomobject]@{ name = 'Imported'; links = @(); folders = @() }
-        $imported = New-ChromeFolderNode $importedSeed $nextId
-        $bookmarkBar.children = @($bookmarkBar.children) + @($imported)
-    }
-
-    $remaining = @($imported.children) |
-        Where-Object { -not ($_.type -eq 'folder' -and $_.name -eq $Manifest.title) }
-    $topicNode = New-TopicNode $Manifest $nextId
-    $imported.children = @($remaining) + @($topicNode)
-    $imported.date_modified = Get-ChromeTimestamp
-    $bookmarkBar.date_modified = Get-ChromeTimestamp
-    # Normalize the mixed PSCustomObject/ordered-hashtable tree before calculating
-    # the checksum. PowerShell can enumerate those representations differently.
-    $bookmarks.checksum = ''
-
-    $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $backupPath = "$bookmarksPath.learning-bookmarks-$timestamp.bak"
-    Copy-Item -LiteralPath $bookmarksPath -Destination $backupPath
-
-    $temporaryPath = "$bookmarksPath.learning-bookmarks.tmp"
-    $json = $bookmarks | ConvertTo-Json -Depth 100
-    [IO.File]::WriteAllText($temporaryPath, $json, [Text.UTF8Encoding]::new($false))
-
-    $verification = Get-Content -LiteralPath $temporaryPath -Raw | ConvertFrom-Json
-    $verification.checksum = Get-BookmarkChecksum $verification
-    $json = $verification | ConvertTo-Json -Depth 100
-    [IO.File]::WriteAllText($temporaryPath, $json, [Text.UTF8Encoding]::new($false))
-
-    $roundTripVerification = Get-Content -LiteralPath $temporaryPath -Raw | ConvertFrom-Json
-    if ((Get-BookmarkChecksum $roundTripVerification) -ne $roundTripVerification.checksum) {
-        Remove-Item -LiteralPath $temporaryPath -Force
-        throw "Generated $BrowserName bookmark checksum verification failed."
-    }
-
-    Move-Item -LiteralPath $temporaryPath -Destination $bookmarksPath -Force
-    return [pscustomobject]@{
-        Mode = 'Direct'
-        Browser = $BrowserName
-        BookmarksPath = $bookmarksPath
-        BackupPath = $backupPath
-        Topic = $Manifest.title
-    }
+    throw "Direct $BrowserName profile editing is disabled. Raw Chromium Bookmarks-file writes bypass sync metadata and can flatten or restore unrelated favorite folders. Generate an import file and import it through the browser UI instead."
 }
 
 $resolvedManifestPath = [IO.Path]::GetFullPath($ManifestPath)
@@ -430,39 +368,13 @@ if ($Mode -eq 'Import') {
 }
 
 if ($Mode -eq 'Direct') {
-    $readyTargets = foreach ($target in $targets) {
-        [pscustomobject]@{
-            Target = $target
-            BookmarksPath = Assert-BrowserReady $target.Name $target.ProcessName $target.ProfilePath
-        }
-    }
-
-    foreach ($readyTarget in $readyTargets) {
-        Publish-Direct `
-            $manifest `
-            $readyTarget.Target.Name `
-            $readyTarget.BookmarksPath
-    }
-    return
+    throw 'Direct browser profile editing is disabled because it bypasses sync metadata and can reorganize unrelated favorites. Use -Mode Import.'
 }
 
-$failures = [Collections.Generic.List[string]]::new()
-foreach ($target in $targets) {
-    try {
-        $bookmarksPath = Assert-BrowserReady $target.Name $target.ProcessName $target.ProfilePath
-        Publish-Direct $manifest $target.Name $bookmarksPath
-    }
-    catch {
-        $failures.Add("$($target.Name): $($_.Exception.Message)")
-    }
-}
-
-if ($failures.Count -gt 0) {
-    [pscustomobject]@{
-        Mode = 'ImportFallback'
-        Browser = $Browser
-        Reason = $failures -join ' '
-        ImportPath = Write-ImportFile $manifest $OutputDirectory
-        Topic = $manifest.title
-    }
+[pscustomobject]@{
+    Mode = 'ImportFallback'
+    Browser = $Browser
+    Reason = 'Direct Chromium profile editing is disabled because it bypasses Favorites/Bookmarks Sync metadata.'
+    ImportPath = Write-ImportFile $manifest $OutputDirectory
+    Topic = $manifest.title
 }
