@@ -1,6 +1,6 @@
 ---
 name: learn-with-bookmarks
-description: Investigate and teach a technical topic across one or more repositories, then create a durable local HTML learning guide with a collapsed bookmark tree followed by mandatory Architecture, Sequence, and Data Flow diagrams plus applicable detailed, color-coded C4, component, activity, flow, decision, state, or code diagrams, direct component-specific telemetry query links when known, and a structured bookmark folder published under Chrome and Microsoft Edge's top-level Imported folders. Use when the user says they want to learn, understand, trace, or get an overview of a feature, flow, architecture, incident, PR, or recent code changes and wants diagrams plus source, telemetry, or bookmark links.
+description: Investigate and teach a technical topic across one or more repositories, then create a durable local HTML learning guide with a collapsed bookmark tree followed by mandatory Architecture, Sequence, and Data Flow diagrams plus applicable detailed, color-coded C4, component, activity, flow, decision, state, or code diagrams, direct component-specific telemetry query links when known, and a structured bookmark folder published safely through the Edge companion API or browser import. Use when the user says they want to learn, understand, trace, or get an overview of a feature, flow, architecture, incident, PR, or recent code changes and wants diagrams plus source, telemetry, or bookmark links.
 ---
 
 # Learn with bookmarks
@@ -45,11 +45,13 @@ Complete all of the following:
    **Data Flow Diagram**.
 8. Create detailed sub-bookmarks that trace the code's execution path in runtime
    order, including cross-service and cross-repository handoffs.
-9. Create one import-ready HTML file that Chrome and Microsoft Edge can safely
-   place under their top-level `Imported` folders through the browser UI.
+9. Create one import-ready HTML file for Chrome and Microsoft Edge. When the
+   Edge companion is installed, publish the same complete tree automatically
+   through Edge's official bookmarks API and require its successful bridge result.
 10. Never modify a browser's `Bookmarks` profile file directly. Raw Chromium
     profile writes bypass Favorites/Bookmarks Sync metadata and can flatten,
-    reparent, duplicate, or restore unrelated folders.
+    reparent, duplicate, or restore unrelated folders. All automated movement,
+    grouping, replacement, and restoration must use the Edge companion API.
 11. Keep all generated artifacts in durable storage, never session state or a temporary directory.
 
 ## Beginner-first teaching baseline
@@ -1088,11 +1090,40 @@ Never directly edit, replace, restore, or reorganize a Chromium `Bookmarks`
 file, even when the browser is closed and a checksum can be recalculated.
 Favorites/Bookmarks Sync tracks parent relationships outside that JSON file.
 Direct file changes can therefore cause unrelated, previously organized folders
-to be flattened or restored from stale sync state. Moving or grouping favorites
-must be done through the browser's Favorites/Bookmarks Manager so sync metadata
-is updated.
+to be flattened or restored from stale sync state. Moving, grouping, replacing,
+or restoring favorites must be done through the browser's Favorites/Bookmarks
+Manager or the companion's official `chrome.bookmarks` API so sync metadata is
+updated.
 
-Run the bundled publisher:
+### One-time Edge companion installation
+
+Run:
+
+```powershell
+& "<skill-directory>\scripts\Install-EdgeFavoritesCompanion.ps1"
+```
+
+The helper opens `edge://extensions` and the bundled `edge-companion` folder.
+Enable Developer mode, select **Load unpacked**, choose that folder, and verify
+the stable ID `bcnnjcbahmgdcieaelpellgemkkgjgcg`. This is an explicit one-time
+unpacked installation; the helper never modifies policy or forces installation.
+
+After installation, Edge publication can be automatic:
+
+```powershell
+& "<skill-directory>\scripts\Publish-LearningBookmarks.ps1" `
+  -ManifestPath "<topic-folder>\<topic-slug>-bookmarks.json" `
+  -Browser Edge `
+  -Mode EdgeApi `
+  -DestinationPath "Favorites bar","Imported"
+```
+
+The destination must already exist and every segment must resolve exactly once.
+`EdgeApi` removes only same-named topic folders at that destination, then creates
+the complete topic tree with the overview first and browser-managed IDs. Never
+report automatic publication as successful unless the bridge returns `ok: true`.
+
+Import fallback remains available:
 
 ```powershell
 & "<skill-directory>\scripts\Publish-LearningBookmarks.ps1" `
@@ -1101,8 +1132,9 @@ Run the bundled publisher:
   -Mode Import
 ```
 
-Use `-Browser Chrome` or `-Browser Edge` only when the user explicitly wants a
-single browser. `-Mode Import` is the required mode.
+Use `-Mode EdgeApi -Browser Edge` when the companion is installed. Use
+`-Mode Import` for Chrome, for both browsers, or whenever the companion is not
+installed. The publisher always retains the generated import file.
 
 Modes:
 
@@ -1111,6 +1143,9 @@ Modes:
 - `Direct`: fails without modifying browser data. It remains only for backward
   compatibility with existing invocations.
 - `Import`: only creates browser-compatible Netscape bookmark HTML.
+- `EdgeApi`: requires `-Browser Edge`, builds an `upsertManifestTopic` command,
+  invokes the authenticated loopback bridge, and succeeds only after a validated
+  extension result.
 
 Browser targets:
 
@@ -1118,8 +1153,32 @@ Browser targets:
 - `Chrome`: Chrome only.
 - `Edge`: Microsoft Edge only.
 
-Before import publication, the publisher also updates the overview HTML's
+Before every publication, the publisher also updates the overview HTML's
 embedded bookmark tree from this manifest.
+
+### Safe folder restoration
+
+To replace one exact existing Edge folder's children from a known-good Chromium
+backup without touching the profile file:
+
+```powershell
+& "<skill-directory>\scripts\Restore-EdgeFavoritesFolder.ps1" `
+  -BackupPath "<read-only Bookmarks backup>" `
+  -FolderPath "Kusto","Engine","Cache" `
+  -OutputCommandPath "<durable-folder>\cache-restore-command.json" `
+  -Apply
+```
+
+The script reads `roots.bookmark_bar`, fails on missing or ambiguous path
+segments, converts only the selected folder's complete children, and sends a
+`replaceFolderChildren` command through the same companion. Omit `-Apply` to
+generate and inspect the command only. Never copy the backup over the browser
+profile. Use this companion for all future automated favorite movement,
+grouping, and restoration.
+
+When organized topic folders are duplicated under `Imported`, use the
+companion's narrowly scoped `removeNamedFolders` command after computing the
+exact intersection. Never replace all `Imported` children to remove duplicates.
 
 ## Version control for this skill
 
@@ -1142,9 +1201,7 @@ Normal `/learn-with-bookmarks` runs create learning artifacts but do not modify
 or commit the skill repository. Commit and push only when the skill
 implementation, instructions, scripts, or templates change.
 
-Never terminate Chrome or Edge. Ask the user to close running browsers for direct
-publication; use the fallback only when they choose not to close them or
-interactive confirmation is unavailable.
+Never terminate Chrome or Edge. Direct publication is permanently blocked.
 
 Import mode intentionally emits only the topic folder. Chrome or Edge creates the
 top-level `Imported` folder during import. Tell the user to use the applicable
@@ -1162,11 +1219,13 @@ Lead with the result and provide:
 - overview HTML path;
 - bookmark manifest path;
 - import path for Chrome and Edge;
-- reminder that import must be completed through the browser UI;
+- for EdgeApi, the destination and validated companion result; otherwise, a
+  reminder that import must be completed through the browser UI;
 - the invocation for next time:
 
 ```text
 /learn-with-bookmarks <topic>
 ```
 
-Do not claim that restarting a browser imports the file automatically.
+Do not claim that restarting a browser imports the file automatically, and do
+not claim EdgeApi success without a successful structured bridge result.

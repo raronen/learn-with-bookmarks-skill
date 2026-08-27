@@ -33,13 +33,52 @@ repositories and produces:
   implementation link;
 - a PR-learning mode that resolves Azure DevOps PRs, analyzes base-versus-PR
   behavior, and links directly to precise ranges in the PR Files experience;
-- a structured Chrome and Microsoft Edge import file that the browser UI places
-  under `Imported` without bypassing Favorites/Bookmarks Sync metadata.
+- a structured Chrome and Microsoft Edge import file for safe browser import;
+- optional automatic Microsoft Edge publication through the bundled companion
+  extension and Edge's official `chrome.bookmarks` API.
 
 The publisher intentionally never edits Chromium `Bookmarks` profile files.
-Direct JSON writes can corrupt unrelated folder organization when browser sync
-restores stale parent relationships. Use the browser's import command and
-Favorites/Bookmarks Manager for all publication, movement, and grouping.
+Direct JSON writes bypass sync metadata and can flatten unrelated favorites when
+sync restores stale parent relationships. Publication, movement, grouping, and
+restoration must use the Edge companion API or the browser's import/manager UI.
+
+## One-time Edge companion installation
+
+```powershell
+& ".\scripts\Install-EdgeFavoritesCompanion.ps1"
+```
+
+In `edge://extensions`, enable Developer mode, choose **Load unpacked**, and
+select `edge-companion`. Verify extension ID
+`bcnnjcbahmgdcieaelpellgemkkgjgcg`. The helper only opens the page and folder;
+it does not force-install or set policy.
+
+After installation, publish automatically:
+
+```powershell
+& ".\scripts\Publish-LearningBookmarks.ps1" `
+  -ManifestPath "<manifest.json>" `
+  -Mode EdgeApi `
+  -Browser Edge `
+  -DestinationPath "Favorites bar","Imported"
+```
+
+The loopback bridge supplies one command with a random token and reports the
+extension's structured result. Do not claim success unless that result succeeds.
+If the companion is unavailable, use `-Mode Import` and import the generated
+HTML through Edge or Chrome.
+
+To restore only one folder's children from a read-only Chromium backup:
+
+```powershell
+& ".\scripts\Restore-EdgeFavoritesFolder.ps1" `
+  -BackupPath "<Bookmarks backup>" `
+  -FolderPath "Kusto","Engine","Cache" `
+  -OutputCommandPath ".\cache-restore-command.json" `
+  -Apply
+```
+
+This reads the backup but never edits or replaces any browser profile file.
 
 Invoke it with:
 

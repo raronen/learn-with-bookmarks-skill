@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Learn with Bookmarks - Edge Companion",
+  "version": "1.0.4",
+  "description": "Applies locally generated learning bookmark trees through Edge's official bookmarks API.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuA8jFRWMEje7UuLtDMllfRTd+AJJGVDBhsAeBioiiyHosQLfWgeHLW0U/xwRBFwkdsFNUrWQFhzDLXMg1nRHygu9OqTkIy2zNvBJ2rky2sVZmJrcHeY0+KFAmVegU6wOe0ihw6g5E/tgTgXUbewyGXlvHx0b7anGtyY5BhC8UHlx2ZFvChGBY8GSQ3yPanQvwaze3oaDxtfQLh2LjvMJR58tVn/ra9OfaDrKsXbgIjArSPrSpRLxyph9S8AdCSs/syS9mTAYkadysWEpOHBPeh0Wp8LPce/17YkucyZyLfZNVlfp/9J56dlMBInlF+Ie5ocW7L+GMYZhGi24FqDbrQIDAQAB",
+  "permissions": [
+    "bookmarks"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src http://127.0.0.1:*"
+  }
+}

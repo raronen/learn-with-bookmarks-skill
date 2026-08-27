@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory)]
     [string] $ManifestPath,
 
-    [ValidateSet('Auto', 'Direct', 'Import')]
+    [ValidateSet('Auto', 'Direct', 'Import', 'EdgeApi')]
     [string] $Mode = 'Auto',
 
     [ValidateSet('Chrome', 'Edge', 'Both')]
@@ -13,7 +13,12 @@ param(
 
     [string] $EdgeProfilePath = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default",
 
-    [string] $OutputDirectory
+    [string] $OutputDirectory,
+
+    [string[]] $DestinationPath = @('Favorites bar', 'Imported'),
+
+    [ValidateRange(5, 600)]
+    [int] $CompanionTimeoutSeconds = 60
 )
 
 Set-StrictMode -Version Latest
@@ -95,7 +100,12 @@ function Update-OverviewBookmarkTree($Manifest) {
     [void]$builder.AppendLine('  <h2 id="learning-bookmarks-title">Source bookmark tree</h2>')
     [void]$builder.AppendLine('  <p>Folders start collapsed. Expand them here and open source links in new tabs without losing this page.</p>')
 
-    $overviewName = Get-PropertyValue $Manifest 'overviewName' "00 - Open $($Manifest.title) Overview"
+    $configuredOverviewName = Get-PropertyValue $Manifest 'overviewName'
+    $overviewName = if ($configuredOverviewName) {
+        [string]$configuredOverviewName
+    } else {
+        "00 - Open $($Manifest.title) Overview"
+    }
     $topicLinks = [Collections.Generic.List[object]]::new()
     $topicLinks.Add([pscustomobject]@{
         name = $overviewName
@@ -300,6 +310,66 @@ function Write-ImportFile($Manifest, [string] $Directory) {
     return $path
 }
 
+function ConvertTo-CompanionBookmark([string] $Name, [string] $Url) {
+    return [ordered]@{
+        type = 'bookmark'
+        name = $Name
+        url = $Url
+    }
+}
+
+function ConvertTo-CompanionFolder($Folder) {
+    $children = [Collections.Generic.List[object]]::new()
+    foreach ($link in @(Get-PropertyValue $Folder 'links' @())) {
+        $children.Add((ConvertTo-CompanionBookmark ([string]$link.name) ([string]$link.url)))
+    }
+    foreach ($childFolder in @(Get-PropertyValue $Folder 'folders' @())) {
+        $children.Add((ConvertTo-CompanionFolder $childFolder))
+    }
+    return [ordered]@{
+        type = 'folder'
+        name = [string]$Folder.name
+        children = @($children)
+    }
+}
+
+function Write-EdgeApiCommand($Manifest, [string[]] $Path, [string] $Directory) {
+    if ($Path.Count -eq 0 -or $Path[0] -cne 'Favorites bar') {
+        throw "EdgeApi DestinationPath must start with exactly 'Favorites bar'."
+    }
+    if (@($Path | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
+        throw 'EdgeApi DestinationPath must not contain empty segments.'
+    }
+
+    [IO.Directory]::CreateDirectory($Directory) | Out-Null
+    $safeName = ($Manifest.title -replace '[^A-Za-z0-9._-]+', '-').Trim('-').ToLowerInvariant()
+    $commandFilePath = Join-Path $Directory "edgeapi-$safeName-command.json"
+    $overviewName = Get-PropertyValue $Manifest 'overviewName' "00 - Open $($Manifest.title) Overview"
+    $children = [Collections.Generic.List[object]]::new()
+    $children.Add((ConvertTo-CompanionBookmark $overviewName (ConvertTo-FileUri $Manifest.overviewPath)))
+    foreach ($link in @(Get-PropertyValue $Manifest 'links' @())) {
+        $children.Add((ConvertTo-CompanionBookmark ([string]$link.name) ([string]$link.url)))
+    }
+    foreach ($folder in @(Get-PropertyValue $Manifest 'folders' @())) {
+        $children.Add((ConvertTo-CompanionFolder $folder))
+    }
+    $command = [ordered]@{
+        version = 1
+        type = 'upsertManifestTopic'
+        destinationPath = @($Path)
+        topic = [ordered]@{
+            type = 'folder'
+            name = [string]$Manifest.title
+            children = @($children)
+        }
+    }
+    [IO.File]::WriteAllText(
+        $commandFilePath,
+        ($command | ConvertTo-Json -Depth 100),
+        [Text.UTF8Encoding]::new($false))
+    return $commandFilePath
+}
+
 function Assert-BrowserReady(
     [string] $BrowserName,
     [string] $ProcessName,
@@ -368,7 +438,33 @@ if ($Mode -eq 'Import') {
 }
 
 if ($Mode -eq 'Direct') {
-    throw 'Direct browser profile editing is disabled because it bypasses sync metadata and can reorganize unrelated favorites. Use -Mode Import.'
+    throw 'Direct browser profile editing is disabled because it bypasses sync metadata and can reorganize unrelated favorites. Use -Mode EdgeApi -Browser Edge after installing the companion, or use -Mode Import.'
+}
+
+if ($Mode -eq 'EdgeApi') {
+    if ($Browser -ne 'Edge') {
+        throw "EdgeApi supports Microsoft Edge only. Specify '-Browser Edge'. Use Import for Chrome or Both."
+    }
+    $importPath = Write-ImportFile $manifest $OutputDirectory
+    $commandPath = Write-EdgeApiCommand $manifest $DestinationPath $OutputDirectory
+    try {
+        $bridgeResult = & (Join-Path $PSScriptRoot 'Invoke-EdgeFavoritesCompanion.ps1') `
+            -CommandPath $commandPath `
+            -TimeoutSeconds $CompanionTimeoutSeconds
+    }
+    catch {
+        throw "EdgeApi publication failed. Run '$PSScriptRoot\Install-EdgeFavoritesCompanion.ps1' for the one-time companion installation, then retry. $($_.Exception.Message)"
+    }
+    [pscustomobject]@{
+        Mode = 'EdgeApi'
+        Browser = 'Edge'
+        DestinationPath = @($DestinationPath)
+        ImportPath = $importPath
+        CommandPath = $commandPath
+        Topic = $manifest.title
+        CompanionResult = $bridgeResult
+    }
+    return
 }
 
 [pscustomobject]@{
